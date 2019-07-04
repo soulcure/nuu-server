@@ -1,17 +1,18 @@
 package models
 
 import (
-	"fmt"
 	"github.com/kataras/iris"
+	"github.com/sirupsen/logrus"
 )
 
 const (
 	OK = 0
 
-	NotLoginCode    = 301 //未登录
-	LoginErrCode    = 302 //登录失败
-	TokenExpCode    = 303 //token失效
-	RegisterErrCode = 304 //注册失败
+	NotLoginCode       = 301 //未登录
+	LoginErrCode       = 302 //登录失败
+	TokenExpCode       = 303 //token失效
+	RegisterErrCode    = 304 //注册失败
+	ReqPlatformErrCode = 305 //平台获取数据失败
 
 	ParamErrCode   = 401 //请求参数异常
 	NoFoundErrCode = 404 //Not Found
@@ -56,6 +57,6 @@ type ProtocolRsp struct {
 
 func (json *ProtocolRsp) ResponseWriter(ctx iris.Context) {
 	if _, err := ctx.JSON(json); err != nil {
-		fmt.Println(err)
+		logrus.Error(err)
 	}
 }

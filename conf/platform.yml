@@ -1,0 +1,5 @@
+url: http://47.91.250.107:80/api/public_intf
+itf_name: query_device_package_info
+trans_serial: 1234cde
+login: tuser
+auth_code: abcd456
