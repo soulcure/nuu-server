@@ -28,6 +28,7 @@ func Hub(app *iris.Application) {
 	app.Post("/register", registerHandler)
 	app.Post("/login", loginHandler)
 	app.Post("/detail", models.PackageDetailToday)
+	app.Post("/api/sale", models.QueryPackageForSale)
 	app.Post("/api/update", tokenHandler, updateProfile)
 }
 
