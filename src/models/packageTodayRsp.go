@@ -34,7 +34,9 @@ func init() {
 	}
 }
 
-func PackageDetailToday(ctx iris.Context, deviceSn string) {
+func PackageDetailToday(ctx iris.Context) {
+	deviceSn := ctx.FormValue("deviceSn")
+
 	data := make(url.Values)
 	data["itf_name"] = []string{account.ItfName}
 	data["trans_serial"] = []string{account.TransSerial}

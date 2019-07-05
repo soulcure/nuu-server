@@ -27,11 +27,12 @@ func Hub(app *iris.Application) {
 	app.Get("/test", test)
 	app.Post("/register", registerHandler)
 	app.Post("/login", loginHandler)
+	app.Post("/detail", models.PackageDetailToday)
 	app.Post("/api/update", tokenHandler, updateProfile)
 }
 
 func test(ctx iris.Context) {
-	models.PackageDetailToday(ctx, "354243074362656")
+	models.PackageDetailToday(ctx)
 }
 
 func notFound(ctx iris.Context) {
