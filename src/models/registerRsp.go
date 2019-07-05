@@ -6,4 +6,7 @@ type RegisterRsp struct {
 	UserName string `json:"username"`
 	Email    string `json:"email"`
 	PassWord string `json:"password"`
+
+	Token   string `json:"token"`
+	Expired int64  `json:"expired"`
 }

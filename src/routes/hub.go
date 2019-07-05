@@ -65,12 +65,27 @@ func registerHandler(ctx iris.Context) {
 		logrus.Debug("user register uuid:", userUuid)
 		if id, err := mysql.RegisterInsert(userUuid, username, email, mobile, iso, password); err == nil {
 			logrus.Debug("user register success")
-			var res models.ProtocolRsp
-			res.Code = models.OK
-			res.Msg = models.SUCCESS
-			res.Data = &models.RegisterRsp{Id: int(id), Uuid: userUuid, UserName: username, Email: email, PassWord: password}
-			res.ResponseWriter(ctx)
+			userId := int(id)
+			exp := time.Now().Add(time.Hour * 72).Unix()
+			token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+				"id":   userId,
+				"uuid": userUuid,
+				"exp":  exp,
+			})
+			if token, err := token.SignedString([]byte(SecretKey)); err == nil {
+				logrus.Debug(username, "  set Token:", token)
+				var res models.ProtocolRsp
 
+				res.Code = models.OK
+				res.Msg = models.SUCCESS
+				res.Data = &models.RegisterRsp{Id: userId, Uuid: userUuid, UserName: username, Email: email, PassWord: password, Token: token, Expired: exp}
+				res.ResponseWriter(ctx)
+			} else {
+				var res models.ProtocolRsp
+				res.Code = models.RegisterErrCode
+				res.Msg = err.Error()
+				res.ResponseWriter(ctx)
+			}
 		} else {
 			var res models.ProtocolRsp
 			res.Code = models.RegisterErrCode

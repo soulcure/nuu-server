@@ -50,11 +50,6 @@ func main() {
 
 	config := iris.WithConfiguration(iris.YAML("./conf/iris.yml"))
 
-	/*srv := &http.Server{Addr: "119.23.74.49:8080"}
-	if err := app.Run(iris.Server(srv), config); err != nil {
-		logrus.Error(err)
-	}*/
-
 	if err := app.Run(iris.Addr(":8899"), config); err != nil {
 		logrus.Error(err)
 	}
