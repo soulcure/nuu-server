@@ -117,7 +117,7 @@ func loginHandler(ctx iris.Context) {
 				var res models.ProtocolRsp
 				res.Code = models.OK
 				res.Msg = models.SUCCESS
-				res.Data = &models.LoginRsp{Token: token, Id: account.Id, Uuid: account.Uuid, Expired: exp}
+				res.Data = &models.LoginRsp{Token: token, Id: account.Id, Uuid: account.Uuid, Expired: exp, UserName: username, Email: email}
 				res.ResponseWriter(ctx)
 			} else {
 				var res models.ProtocolRsp
