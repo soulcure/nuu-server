@@ -13,6 +13,7 @@ const (
 	TokenExpCode       = 303 //token失效
 	RegisterErrCode    = 304 //注册失败
 	ReqPlatformErrCode = 305 //平台获取数据失败
+	OrderErrCode       = 306 //生成订单号失败
 
 	ParamErrCode   = 401 //请求参数异常
 	NoFoundErrCode = 404 //Not Found
@@ -43,6 +44,7 @@ const (
 	LoginUserNameFormatErr = "login username format error:Number or letter does not limit capitalization 6-30 digits"
 	LoginEmailFormatErr    = "login email format error:Number or letter or symbol 6-30 digits"
 
+	ParamErr        = "Request Param Error"
 	TokenErr        = "Token Error"
 	TokenExpiredErr = "Token Expired"
 	NoFoundErr      = "NoFound Error"

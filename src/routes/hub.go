@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"fmt"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/kataras/iris"
 	uuid "github.com/satori/go.uuid"
@@ -30,6 +31,7 @@ func Hub(app *iris.Application) {
 	app.Post("/detail", models.PackageDetailToday)
 	app.Post("/api/sale", models.QueryPackageForSale)
 	app.Post("/api/update", tokenHandler, updateProfile)
+	app.Post("/api/order", tokenHandler, insertOrder)
 }
 
 func test(ctx iris.Context) {
@@ -127,6 +129,11 @@ func loginHandler(ctx iris.Context) {
 				res.ResponseWriter(ctx)
 			}
 
+		} else {
+			var res models.ProtocolRsp
+			res.Code = models.LoginErrCode
+			res.Msg = err.Error()
+			res.ResponseWriter(ctx)
 		}
 	}
 }
@@ -200,6 +207,80 @@ func updateProfile(ctx iris.Context) {
 		}
 
 	}
+}
+
+func insertOrder(ctx iris.Context) {
+	orderId := redis.GetOrderNum()
+	orderTime := time.Now().Format("20060102150405")
+
+	deviceSn := ctx.FormValue("deviceSn")
+	price := ctx.FormValue("price")
+	currency := ctx.FormValue("currency")
+
+	packageId, err := ctx.PostValueInt("packageId")
+	if err != nil {
+		var res models.ProtocolRsp
+		res.Code = models.ParamErrCode
+		res.Msg = models.ParamErr
+		res.ResponseWriter(ctx)
+		return
+	}
+
+	count, err := ctx.PostValueInt("count")
+	if err != nil {
+		var res models.ProtocolRsp
+		res.Code = models.ParamErrCode
+		res.Msg = models.ParamErr
+		res.ResponseWriter(ctx)
+		return
+	}
+
+	p, err := strconv.ParseFloat(price, 64)
+	if err != nil {
+		var res models.ProtocolRsp
+		res.Code = models.ParamErrCode
+		res.Msg = models.ParamErr
+		res.ResponseWriter(ctx)
+		return
+	}
+
+	money := p * float64(count)
+	moneyStr := fmt.Sprintf("%.2f", money)
+
+	order := mysql.OrderReq{
+		UserId:    int(ctx.Values().Get("id").(float64)),
+		Uuid:      ctx.Values().Get("uuid").(string),
+		OrderId:   orderId,
+		Price:     price,
+		Currency:  currency,
+		DeviceSn:  deviceSn,
+		PackageId: packageId,
+		OrderTime: orderTime,
+
+		Status: 0,
+		PayId:  "",
+		Count:  uint8(count),
+		Money:  moneyStr,
+
+		Effective:     0,
+		EffectiveType: 1,
+		Discount:      100,
+	}
+
+	_, err = order.InsertOrder()
+	if err != nil {
+		var res models.ProtocolRsp
+		res.Code = models.OrderErrCode
+		res.Msg = err.Error()
+		res.ResponseWriter(ctx)
+	} else {
+		var res models.ProtocolRsp
+		res.Code = models.OK
+		res.Msg = models.SUCCESS
+		res.Data = &mysql.OrderRsp{OrderId: orderId, Money: moneyStr}
+		res.ResponseWriter(ctx)
+	}
+
 }
 
 func checkRegisterFormat(ctx iris.Context, username, email, mobile, iso, password string) bool {
