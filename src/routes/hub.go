@@ -4,14 +4,12 @@ import (
 	"fmt"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/kataras/iris"
-	paypalsdk "github.com/logpacker/PayPal-Go-SDK"
 	uuid "github.com/satori/go.uuid"
 	"github.com/sirupsen/logrus"
 	"models"
 	"mysql"
 	"net/http"
 	"os"
-	"paypal"
 	"redis"
 	"strconv"
 	"time"
@@ -33,9 +31,11 @@ func Hub(app *iris.Application) {
 	app.Post("/login", loginHandler)
 	app.Post("/detail", models.PackageDetailToday)
 	app.Post("/api/sale", models.QueryPackageForSale)
+
+	//need login
 	app.Post("/api/update", tokenHandler, updateProfile)
-	app.Post("/api/order", tokenHandler, insertOrder)
-	app.Post("/api/pay", tokenHandler, orderPay)
+	app.Post("/api/order", tokenHandler, genOrder)
+	app.Post("/api/pay", tokenHandler, models.OrderPay)
 }
 
 func test(ctx iris.Context) {
@@ -213,19 +213,20 @@ func updateProfile(ctx iris.Context) {
 	}
 }
 
-func insertOrder(ctx iris.Context) {
+func genOrder(ctx iris.Context) {
 	orderId := redis.GetOrderNum()
 	orderTime := time.Now().Format("20060102150405")
 
 	deviceSn := ctx.FormValue("deviceSn")
-	price := ctx.FormValue("price")
+	price := ctx.FormValue("price") //need server check price
 	currency := ctx.FormValue("currency")
+	beginDate := ctx.FormValue("beginDate")
 
 	packageId, err := ctx.PostValueInt("packageId")
 	if err != nil {
 		var res models.ProtocolRsp
 		res.Code = models.ParamErrCode
-		res.Msg = models.ParamErr
+		res.Msg = models.PackageIdErr
 		res.ResponseWriter(ctx)
 		return
 	}
@@ -261,6 +262,7 @@ func insertOrder(ctx iris.Context) {
 		DeviceSn:  deviceSn,
 		PackageId: packageId,
 		OrderTime: orderTime,
+		BeginDate: beginDate,
 
 		Status: 0,  //0未支付
 		PayId:  "", //等待客户端上传payment id
@@ -272,7 +274,8 @@ func insertOrder(ctx iris.Context) {
 		Discount:      100,                  //商品未打折
 	}
 
-	if _, err = order.InsertOrder(); err == nil {
+	if id, err := order.InsertOrder(); err == nil {
+		order.Id = int(id)
 		if _, err = redis.SetStruct(orderId, order); err == nil {
 			var res models.ProtocolRsp
 			res.Code = models.OK
@@ -285,47 +288,8 @@ func insertOrder(ctx iris.Context) {
 
 	var res models.ProtocolRsp
 	res.Code = models.OrderErrCode
-	res.Msg = err.Error()
+	res.Msg = models.GenOrderErr
 	res.ResponseWriter(ctx)
-
-}
-
-func orderPay(ctx iris.Context) {
-	clientID := "ASskKGQjRAf-6jAdwn771epAcx7C_dDNBGH-SMtjbo9xAlbV-D7Ah695YLTdllnRCPklUZdjjH1mlTcW"
-	secretID := "EHyzTazQP6MDA4vmW7mbhPdBiENmd3KO2aPjk-iEExbNIZ80ZNw177G8_-wxAEG8xHuyAklW9pSbKHUc"
-	paymentId := ctx.FormValue("paymentId")
-	orderId := ctx.FormValue("orderId")
-	// Create a client instance
-	if c, err := paypal.NewClient(clientID, secretID, paypalsdk.APIBaseSandBox); err == nil {
-		c.SetLog(NewLogFile()) // Set log to terminal stdout
-
-		if _, err := c.GetAccessToken(); err == nil {
-			if payment, err := c.GetPayment(paymentId); err == nil {
-				logrus.Debug("payment:", payment)
-
-				order := &mysql.OrderReq{
-					OrderId: orderId,
-					PayId:   paymentId,
-					Status:  1,
-				}
-				orderBean := &mysql.OrderReq{}
-				if err := redis.GetStruct(orderId, orderBean); err == nil {
-
-					orderBean.PayId = paymentId
-					models.PayPalDone(ctx, orderBean)
-				}
-
-				if err := order.UpdateOrderStatus(); err == nil {
-
-				}
-
-			} else {
-				logrus.Error("payment err:", err)
-			}
-		} else {
-			logrus.Error("GetAccessToken err:", err)
-		}
-	}
 
 }
 

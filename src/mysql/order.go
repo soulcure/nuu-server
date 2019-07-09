@@ -19,7 +19,7 @@ type OrderReq struct {
 	DeviceSn      string `db:"device_sn" json:"deviceSN"`
 	PackageId     int    `db:"package_id" json:"packageId"`
 	OrderTime     string `db:"order_time" json:"orderTime"`
-	BeginTime     string `db:"begin_time" json:"begin_time"`        //流量包生效日期
+	BeginDate     string `db:"begin_date" json:"begin_date"`        //流量包生效日期
 	Status        uint8  `db:"status" json:"status"`                //支付状态  0未支付，1已经支付
 	PayId         string `db:"pay_id" json:"payId"`                 //支付平台 支付ID
 	Count         uint8  `db:"count" json:"count"`                  //流量包数量

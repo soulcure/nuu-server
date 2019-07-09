@@ -11,7 +11,9 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"paypal"
 	"redis"
+	"routes"
 )
 
 type PlatformAccount struct {
@@ -19,6 +21,11 @@ type PlatformAccount struct {
 	TransSerial string `yaml:"trans_serial"`
 	Login       string `yaml:"login"`
 	AuthCode    string `yaml:"auth_code"`
+
+	//PayPal account
+	ClientID    string `yaml:"clientID"`
+	SecretID    string `yaml:"secretID"`
+	APIBaseLive string `yaml:"APIBaseLive"`
 
 	// platform api config
 	UsedTodayDetail string `yaml:"used_today_detail"`
@@ -29,7 +36,7 @@ type PlatformAccount struct {
 type BuyPackageResult struct {
 	ItfName             string `json:"itf_name"`
 	TransSerial         string `json:"trans_serial"`
-	ErrCode             string `json:"err_code"`
+	ErrCode             int    `json:"err_code"`
 	ErrDesc             string `json:"err_desc"`
 	DevicePackageId     string `json:"device_package_id"`
 	DevicePackageIdList string `json:"device_package_id_list"`
@@ -144,7 +151,7 @@ func PayPalDone(ctx iris.Context, order *mysql.OrderReq) {
 	data["auth_code"] = []string{account.AuthCode}
 	data["device_sn"] = []string{order.DeviceSn}
 	data["package_id"] = []string{fmt.Sprintf("%d", order.PackageId)}
-	data["begin_date"] = []string{order.BeginTime}
+	data["begin_date"] = []string{order.BeginDate}
 	data["total_num"] = []string{fmt.Sprintf("%d", order.Count)}
 	data["valid_type"] = []string{fmt.Sprintf("%d", order.EffectiveType)}
 
@@ -158,25 +165,27 @@ func PayPalDone(ctx iris.Context, order *mysql.OrderReq) {
 	rsp, err = http.PostForm(account.Url, data)
 	if err == nil {
 		if body, err = ioutil.ReadAll(rsp.Body); err == nil {
-
-			order := &mysql.OrderReq{
-				OrderId: order.OrderId,
-				PayId:   order.PayId,
-				Status:  1,
-			}
-
-			if err = order.UpdateOrderStatus(); err == nil {
-				_, err = redis.DelKey(order.OrderId)
-			}
-
 			if err := json.Unmarshal(body, &buyResult); err == nil {
-				var res ProtocolRsp
-				res.Code = OK
-				res.Msg = SUCCESS
-				res.ResponseWriter(ctx)
-				return
-			}
+				if buyResult.ErrCode == 0 {
+					order := &mysql.OrderReq{
+						OrderId:   order.OrderId,
+						PayId:     order.PayId,
+						Effective: 1,
+						Status:    1,
+					}
 
+					if err = order.UpdateOrderStatus(); err == nil {
+						if _, err = redis.DelKey(order.OrderId); err == nil {
+							var res ProtocolRsp
+							res.Code = OK
+							res.Msg = SUCCESS
+							res.Data = buyResult
+							res.ResponseWriter(ctx)
+							return
+						}
+					}
+				}
+			}
 		}
 	}
 
@@ -190,5 +199,32 @@ func PayPalDone(ctx iris.Context, order *mysql.OrderReq) {
 	res.Code = ReqPlatformErrCode
 	res.Msg = err.Error()
 	res.ResponseWriter(ctx)
+
+}
+
+func OrderPay(ctx iris.Context) {
+	paymentId := ctx.FormValue("paymentId")
+	orderId := ctx.FormValue("orderId")
+	// Create a client instance
+	if c, err := paypal.NewClient(account.ClientID, account.SecretID, account.APIBaseLive); err == nil {
+		c.SetLog(routes.NewLogFile()) // Set log to terminal stdout
+
+		if _, err := c.GetAccessToken(); err == nil {
+			if payment, err := c.GetPayment(paymentId); err == nil {
+				logrus.Debug("payment:", payment)
+
+				orderBean := &mysql.OrderReq{}
+				if err := redis.GetStruct(orderId, orderBean); err == nil {
+					orderBean.PayId = paymentId
+					PayPalDone(ctx, orderBean)
+				}
+
+			} else {
+				logrus.Error("payment err:", err)
+			}
+		} else {
+			logrus.Error("GetAccessToken err:", err)
+		}
+	}
 
 }

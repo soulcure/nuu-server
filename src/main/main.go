@@ -11,8 +11,9 @@ func init() {
 	f := routes.NewLogFile()
 	logrus.SetLevel(logrus.TraceLevel)
 	logrus.SetOutput(f)
-	//logrus.SetFormatter(&logrus.JSONFormatter{})
-	/*logrus.SetFormatter(&logrus.TextFormatter{
+
+	/*logrus.SetFormatter(&logrus.JSONFormatter{})
+	logrus.SetFormatter(&logrus.TextFormatter{
 		DisableColors: true,
 		FullTimestamp: true,
 	})*/

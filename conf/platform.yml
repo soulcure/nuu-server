@@ -4,6 +4,15 @@ trans_serial: 1234cde
 login: tuser
 auth_code: abcd456
 
+#paypal account
+clientID: ASskKGQjRAf-6jAdwn771epAcx7C_dDNBGH-SMtjbo9xAlbV-D7Ah695YLTdllnRCPklUZdjjH1mlTcW
+secretID: EHyzTazQP6MDA4vmW7mbhPdBiENmd3KO2aPjk-iEExbNIZ80ZNw177G8_-wxAEG8xHuyAklW9pSbKHUc
+# 沙盒: https://api.sandbox.paypal.com
+# 正式: https://api.paypal.com
+APIBaseLive: https://api.sandbox.paypal.com
+
+
+
 # platform api config
 used_today_detail: query_device_package_info
 package_sale: query_package_for_device

@@ -45,6 +45,8 @@ const (
 	LoginEmailFormatErr    = "login email format error:Number or letter or symbol 6-30 digits"
 
 	ParamErr        = "Request Param Error"
+	GenOrderErr     = "Generate Order Error"
+	PackageIdErr    = "Found Package Id Error"
 	TokenErr        = "Token Error"
 	TokenExpiredErr = "Token Expired"
 	NoFoundErr      = "NoFound Error"
