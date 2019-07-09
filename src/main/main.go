@@ -1,6 +1,7 @@
 package main
 
 import (
+	"file"
 	"github.com/kataras/iris"
 	"github.com/sirupsen/logrus"
 	"log"
@@ -8,7 +9,7 @@ import (
 )
 
 func init() {
-	f := routes.NewLogFile()
+	f := file.NewLogFile()
 	logrus.SetLevel(logrus.TraceLevel)
 	logrus.SetOutput(f)
 
@@ -20,7 +21,7 @@ func init() {
 }
 
 func main() {
-	f := routes.NewLogFile()
+	f := file.NewLogFile()
 	defer func() {
 		if err := f.Close(); err != nil {
 			log.Printf("close log file error: %s", err)

@@ -30,8 +30,8 @@ type OrderReq struct {
 }
 
 func (order *OrderReq) InsertOrder() (int64, error) {
-	r, err := db.Exec("insert into c_order(user_id,uuid,order_id,price,currency,device_sn,package_id,order_time,begin_time,status,pay_id,count,money,effective,effective_type,discount)values(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
-		order.UserId, order.Uuid, order.OrderId, order.Price, order.Currency, order.DeviceSn, order.PackageId, order.OrderTime, order.BeginTime, order.Status, order.PayId, order.Count, order.Money, order.Effective, order.EffectiveType, order.Discount)
+	r, err := db.Exec("insert into c_order(user_id,uuid,order_id,price,currency,device_sn,package_id,order_time,begin_date,status,pay_id,count,money,effective,effective_type,discount)values(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+		order.UserId, order.Uuid, order.OrderId, order.Price, order.Currency, order.DeviceSn, order.PackageId, order.OrderTime, order.BeginDate, order.Status, order.PayId, order.Count, order.Money, order.Effective, order.EffectiveType, order.Discount)
 	if err != nil {
 		logrus.Error("mysql Insert order err", err)
 		return 0, err

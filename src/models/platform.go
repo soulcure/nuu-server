@@ -2,6 +2,7 @@ package models
 
 import (
 	"encoding/json"
+	"file"
 	"fmt"
 	"github.com/kataras/iris"
 	"github.com/sirupsen/logrus"
@@ -13,7 +14,6 @@ import (
 	"os"
 	"paypal"
 	"redis"
-	"routes"
 )
 
 type PlatformAccount struct {
@@ -207,7 +207,7 @@ func OrderPay(ctx iris.Context) {
 	orderId := ctx.FormValue("orderId")
 	// Create a client instance
 	if c, err := paypal.NewClient(account.ClientID, account.SecretID, account.APIBaseLive); err == nil {
-		c.SetLog(routes.NewLogFile()) // Set log to terminal stdout
+		c.SetLog(file.NewLogFile()) // Set log to terminal stdout
 
 		if _, err := c.GetAccessToken(); err == nil {
 			if payment, err := c.GetPayment(paymentId); err == nil {
