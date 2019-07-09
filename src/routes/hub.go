@@ -1,14 +1,18 @@
 package routes
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/kataras/iris"
 	uuid "github.com/satori/go.uuid"
 	"github.com/sirupsen/logrus"
+	"io/ioutil"
 	"models"
 	"mysql"
 	"net/http"
+	"net/url"
+	"paypal"
 	"redis"
 	"strconv"
 	"time"
@@ -32,6 +36,8 @@ func Hub(app *iris.Application) {
 	app.Post("/api/sale", models.QueryPackageForSale)
 	app.Post("/api/update", tokenHandler, updateProfile)
 	app.Post("/api/order", tokenHandler, insertOrder)
+	//app.Post("/api/pay", tokenHandler, orderPay)
+	app.Post("/api/pay", orderPay)
 }
 
 func test(ctx iris.Context) {
@@ -279,6 +285,58 @@ func insertOrder(ctx iris.Context) {
 		res.Msg = models.SUCCESS
 		res.Data = &mysql.OrderRsp{OrderId: orderId, Money: moneyStr}
 		res.ResponseWriter(ctx)
+	}
+
+}
+
+func orderPay(ctx iris.Context) {
+	pathToken := "https://api.sandbox.paypal.com/v1/oauth2/token"
+	pathPayment := "https://api.sandbox.paypal.com/v1/payments/payment/"
+	username := "ASskKGQjRAf-6jAdwn771epAcx7C_dDNBGH-SMtjbo9xAlbV-D7Ah695YLTdllnRCPklUZdjjH1mlTcW"
+	password := "EHyzTazQP6MDA4vmW7mbhPdBiENmd3KO2aPjk-iEExbNIZ80ZNw177G8_-wxAEG8xHuyAklW9pSbKHUc"
+	orderId := ctx.FormValue("orderId")
+	paymentId := ctx.FormValue("paymentId")
+
+	if orderId == "" || paymentId == "" {
+		var res models.ProtocolRsp
+		res.Code = models.ParamErrCode
+		res.Msg = models.ParamErr
+		res.ResponseWriter(ctx)
+		return
+	}
+
+	data := make(url.Values)
+	data["grant_type"] = []string{"client_credentials"}
+
+	rsp, err := http.PostForm(pathToken, data)
+	if err == nil {
+		rsp.Header.Set("Content-type", "application/x-www-form-urlencoded")
+		rsp.Request.SetBasicAuth(username, password)
+
+		if body, err := ioutil.ReadAll(rsp.Body); err == nil {
+			logrus.Debug("test1:", string(body))
+			var payAuth mysql.PayPalAuth
+			if err := json.Unmarshal(body, &payAuth); err == nil {
+				token := payAuth.AccessToken
+
+				path := fmt.Sprintf("%s%s", pathPayment, paymentId)
+				if rsp, err := http.Get(path); err == nil {
+					rsp.Header.Set("Content-type", "application/json")
+					rsp.Header.Set("Authorization", "Bearer "+token)
+					if body, err := ioutil.ReadAll(rsp.Body); err == nil {
+						logrus.Debug("test2:", string(body))
+						var payment paypal.PaymentResponse
+						if err := json.Unmarshal(body, &payment); err == nil {
+
+							logrus.Debug("payment:", payment)
+
+						}
+					}
+
+				}
+
+			}
+		}
 	}
 
 }
