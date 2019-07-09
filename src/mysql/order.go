@@ -19,6 +19,7 @@ type OrderReq struct {
 	DeviceSn      string `db:"device_sn" json:"deviceSN"`
 	PackageId     int    `db:"package_id" json:"packageId"`
 	OrderTime     string `db:"order_time" json:"orderTime"`
+	BeginTime     string `db:"begin_time" json:"begin_time"`        //流量包生效日期
 	Status        uint8  `db:"status" json:"status"`                //支付状态  0未支付，1已经支付
 	PayId         string `db:"pay_id" json:"payId"`                 //支付平台 支付ID
 	Count         uint8  `db:"count" json:"count"`                  //流量包数量
@@ -29,8 +30,8 @@ type OrderReq struct {
 }
 
 func (order *OrderReq) InsertOrder() (int64, error) {
-	r, err := db.Exec("insert into c_order(user_id,uuid,order_id,price,currency,device_sn,package_id,order_time,status,pay_id,count,money,effective,effective_type,discount)values(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
-		order.UserId, order.Uuid, order.OrderId, order.Price, order.Currency, order.DeviceSn, order.PackageId, order.OrderTime, order.Status, order.PayId, order.Count, order.Money, order.Effective, order.EffectiveType, order.Discount)
+	r, err := db.Exec("insert into c_order(user_id,uuid,order_id,price,currency,device_sn,package_id,order_time,begin_time,status,pay_id,count,money,effective,effective_type,discount)values(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+		order.UserId, order.Uuid, order.OrderId, order.Price, order.Currency, order.DeviceSn, order.PackageId, order.OrderTime, order.BeginTime, order.Status, order.PayId, order.Count, order.Money, order.Effective, order.EffectiveType, order.Discount)
 	if err != nil {
 		logrus.Error("mysql Insert order err", err)
 		return 0, err

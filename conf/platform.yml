@@ -7,3 +7,4 @@ auth_code: abcd456
 # platform api config
 used_today_detail: query_device_package_info
 package_sale: query_package_for_device
+package_pay_done: buy_package

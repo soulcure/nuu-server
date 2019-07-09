@@ -1,17 +1,16 @@
 package routes
 
 import (
-	"encoding/json"
 	"fmt"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/kataras/iris"
+	paypalsdk "github.com/logpacker/PayPal-Go-SDK"
 	uuid "github.com/satori/go.uuid"
 	"github.com/sirupsen/logrus"
-	"io/ioutil"
 	"models"
 	"mysql"
 	"net/http"
-	"net/url"
+	"os"
 	"paypal"
 	"redis"
 	"strconv"
@@ -36,8 +35,7 @@ func Hub(app *iris.Application) {
 	app.Post("/api/sale", models.QueryPackageForSale)
 	app.Post("/api/update", tokenHandler, updateProfile)
 	app.Post("/api/order", tokenHandler, insertOrder)
-	//app.Post("/api/pay", tokenHandler, orderPay)
-	app.Post("/api/pay", orderPay)
+	app.Post("/api/pay", tokenHandler, orderPay)
 }
 
 func test(ctx iris.Context) {
@@ -234,11 +232,12 @@ func insertOrder(ctx iris.Context) {
 
 	count, err := ctx.PostValueInt("count")
 	if err != nil {
-		var res models.ProtocolRsp
-		res.Code = models.ParamErrCode
-		res.Msg = models.ParamErr
-		res.ResponseWriter(ctx)
-		return
+		count = 1
+	}
+
+	effectiveType, err := ctx.PostValueInt("effective_type")
+	if err != nil {
+		effectiveType = 0
 	}
 
 	p, err := strconv.ParseFloat(price, 64)
@@ -263,79 +262,68 @@ func insertOrder(ctx iris.Context) {
 		PackageId: packageId,
 		OrderTime: orderTime,
 
-		Status: 0,
-		PayId:  "",
+		Status: 0,  //0未支付
+		PayId:  "", //等待客户端上传payment id
 		Count:  uint8(count),
 		Money:  moneyStr,
 
-		Effective:     0,
-		EffectiveType: 1,
-		Discount:      100,
+		Effective:     0,                    //0流量包未生效
+		EffectiveType: uint8(effectiveType), //生效类型
+		Discount:      100,                  //商品未打折
 	}
 
-	_, err = order.InsertOrder()
-	if err != nil {
-		var res models.ProtocolRsp
-		res.Code = models.OrderErrCode
-		res.Msg = err.Error()
-		res.ResponseWriter(ctx)
-	} else {
-		var res models.ProtocolRsp
-		res.Code = models.OK
-		res.Msg = models.SUCCESS
-		res.Data = &mysql.OrderRsp{OrderId: orderId, Money: moneyStr}
-		res.ResponseWriter(ctx)
+	if _, err = order.InsertOrder(); err == nil {
+		if _, err = redis.SetStruct(orderId, order); err == nil {
+			var res models.ProtocolRsp
+			res.Code = models.OK
+			res.Msg = models.SUCCESS
+			res.Data = &mysql.OrderRsp{OrderId: orderId, Money: moneyStr}
+			res.ResponseWriter(ctx)
+			return
+		}
 	}
+
+	var res models.ProtocolRsp
+	res.Code = models.OrderErrCode
+	res.Msg = err.Error()
+	res.ResponseWriter(ctx)
 
 }
 
 func orderPay(ctx iris.Context) {
-	pathToken := "https://api.sandbox.paypal.com/v1/oauth2/token"
-	pathPayment := "https://api.sandbox.paypal.com/v1/payments/payment/"
-	username := "ASskKGQjRAf-6jAdwn771epAcx7C_dDNBGH-SMtjbo9xAlbV-D7Ah695YLTdllnRCPklUZdjjH1mlTcW"
-	password := "EHyzTazQP6MDA4vmW7mbhPdBiENmd3KO2aPjk-iEExbNIZ80ZNw177G8_-wxAEG8xHuyAklW9pSbKHUc"
-	orderId := ctx.FormValue("orderId")
+	clientID := "ASskKGQjRAf-6jAdwn771epAcx7C_dDNBGH-SMtjbo9xAlbV-D7Ah695YLTdllnRCPklUZdjjH1mlTcW"
+	secretID := "EHyzTazQP6MDA4vmW7mbhPdBiENmd3KO2aPjk-iEExbNIZ80ZNw177G8_-wxAEG8xHuyAklW9pSbKHUc"
 	paymentId := ctx.FormValue("paymentId")
+	orderId := ctx.FormValue("orderId")
+	// Create a client instance
+	if c, err := paypal.NewClient(clientID, secretID, paypalsdk.APIBaseSandBox); err == nil {
+		c.SetLog(NewLogFile()) // Set log to terminal stdout
 
-	if orderId == "" || paymentId == "" {
-		var res models.ProtocolRsp
-		res.Code = models.ParamErrCode
-		res.Msg = models.ParamErr
-		res.ResponseWriter(ctx)
-		return
-	}
+		if _, err := c.GetAccessToken(); err == nil {
+			if payment, err := c.GetPayment(paymentId); err == nil {
+				logrus.Debug("payment:", payment)
 
-	data := make(url.Values)
-	data["grant_type"] = []string{"client_credentials"}
+				order := &mysql.OrderReq{
+					OrderId: orderId,
+					PayId:   paymentId,
+					Status:  1,
+				}
+				orderBean := &mysql.OrderReq{}
+				if err := redis.GetStruct(orderId, orderBean); err == nil {
 
-	rsp, err := http.PostForm(pathToken, data)
-	if err == nil {
-		rsp.Header.Set("Content-type", "application/x-www-form-urlencoded")
-		rsp.Request.SetBasicAuth(username, password)
+					orderBean.PayId = paymentId
+					models.PayPalDone(ctx, orderBean)
+				}
 
-		if body, err := ioutil.ReadAll(rsp.Body); err == nil {
-			logrus.Debug("test1:", string(body))
-			var payAuth mysql.PayPalAuth
-			if err := json.Unmarshal(body, &payAuth); err == nil {
-				token := payAuth.AccessToken
-
-				path := fmt.Sprintf("%s%s", pathPayment, paymentId)
-				if rsp, err := http.Get(path); err == nil {
-					rsp.Header.Set("Content-type", "application/json")
-					rsp.Header.Set("Authorization", "Bearer "+token)
-					if body, err := ioutil.ReadAll(rsp.Body); err == nil {
-						logrus.Debug("test2:", string(body))
-						var payment paypal.PaymentResponse
-						if err := json.Unmarshal(body, &payment); err == nil {
-
-							logrus.Debug("payment:", payment)
-
-						}
-					}
+				if err := order.UpdateOrderStatus(); err == nil {
 
 				}
 
+			} else {
+				logrus.Error("payment err:", err)
 			}
+		} else {
+			logrus.Error("GetAccessToken err:", err)
 		}
 	}
 
@@ -430,4 +418,21 @@ func checkLoginFormat(ctx iris.Context, username, email, password string) bool {
 	}
 
 	return true
+}
+
+func NewLogFile() *os.File {
+	filename := todayFilename()
+	// Open the file, this will append to the today's file if server restarted.
+	f, err := os.OpenFile(filename, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+	if err != nil {
+		panic(err)
+	}
+
+	return f
+}
+
+// Get a filename based on the date, just for the sugar.
+func todayFilename() string {
+	today := time.Now().Format("2006-01-02")
+	return today + ".txt"
 }

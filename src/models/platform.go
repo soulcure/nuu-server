@@ -1,13 +1,17 @@
 package models
 
 import (
+	"encoding/json"
+	"fmt"
 	"github.com/kataras/iris"
 	"github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
+	"mysql"
 	"net/http"
 	"net/url"
 	"os"
+	"redis"
 )
 
 type PlatformAccount struct {
@@ -19,6 +23,26 @@ type PlatformAccount struct {
 	// platform api config
 	UsedTodayDetail string `yaml:"used_today_detail"`
 	PackageSale     string `yaml:"package_sale"`
+	PackagePayDone  string `yaml:"package_pay_done"`
+}
+
+type BuyPackageResult struct {
+	ItfName             string `json:"itf_name"`
+	TransSerial         string `json:"trans_serial"`
+	ErrCode             string `json:"err_code"`
+	ErrDesc             string `json:"err_desc"`
+	DevicePackageId     string `json:"device_package_id"`
+	DevicePackageIdList string `json:"device_package_id_list"`
+	OrderId             string `json:"order_id"`
+}
+
+type BuyPackagePlatform struct {
+	Id                  int    `db:"id" redis:"id,omitempty"`
+	Uuid                string `db:"uuid" redis:"uuid"`
+	DeviceSn            string `db:"device_sn" redis:"device_sn"`
+	PlatformOrderId     string `db:"platform_order_id" redis:"platform_order_id"`
+	DevicePackageId     string `db:"device_package_id" redis:"device_package_id"`
+	DevicePackageIdList string `db:"device_package_id_list" redis:"device_package_id_list"`
 }
 
 var (
@@ -72,6 +96,12 @@ func PackageDetailToday(ctx iris.Context) {
 
 func QueryPackageForSale(ctx iris.Context) {
 	deviceSn := ctx.FormValue("deviceSn")
+	if body, err := redis.GetBytes(deviceSn); err == nil {
+		if _, err := ctx.Write(body); err != nil {
+			logrus.Error("QueryPackageForSale error", err)
+		}
+		return
+	}
 
 	data := make(url.Values)
 	data["itf_name"] = []string{account.PackageSale}
@@ -83,10 +113,70 @@ func QueryPackageForSale(ctx iris.Context) {
 	rsp, err := http.PostForm(account.Url, data)
 	if err == nil {
 		if body, err := ioutil.ReadAll(rsp.Body); err == nil {
-			if _, err := ctx.Write(body); err != nil {
-				logrus.Error(err)
+			if _, err := redis.SetBytes(deviceSn, body); err == nil {
+				if _, err := ctx.Write(body); err != nil {
+					logrus.Error(err)
+				}
+				return
 			}
-			return
+		}
+	}
+
+	defer func() {
+		if err = rsp.Body.Close(); err != nil {
+			logrus.Error("http resp body close err:", err)
+		}
+	}()
+
+	var res ProtocolRsp
+	res.Code = ReqPlatformErrCode
+	res.Msg = err.Error()
+	res.ResponseWriter(ctx)
+
+}
+
+func PayPalDone(ctx iris.Context, order *mysql.OrderReq) {
+
+	data := make(url.Values)
+	data["itf_name"] = []string{account.PackagePayDone}
+	data["trans_serial"] = []string{account.TransSerial}
+	data["login"] = []string{account.Login}
+	data["auth_code"] = []string{account.AuthCode}
+	data["device_sn"] = []string{order.DeviceSn}
+	data["package_id"] = []string{fmt.Sprintf("%d", order.PackageId)}
+	data["begin_date"] = []string{order.BeginTime}
+	data["total_num"] = []string{fmt.Sprintf("%d", order.Count)}
+	data["valid_type"] = []string{fmt.Sprintf("%d", order.EffectiveType)}
+
+	var (
+		rsp       *http.Response
+		err       error
+		body      []byte
+		buyResult BuyPackageResult
+	)
+
+	rsp, err = http.PostForm(account.Url, data)
+	if err == nil {
+		if body, err = ioutil.ReadAll(rsp.Body); err == nil {
+
+			order := &mysql.OrderReq{
+				OrderId: order.OrderId,
+				PayId:   order.PayId,
+				Status:  1,
+			}
+
+			if err = order.UpdateOrderStatus(); err == nil {
+				_, err = redis.DelKey(order.OrderId)
+			}
+
+			if err := json.Unmarshal(body, &buyResult); err == nil {
+				var res ProtocolRsp
+				res.Code = OK
+				res.Msg = SUCCESS
+				res.ResponseWriter(ctx)
+				return
+			}
+
 		}
 	}
 
