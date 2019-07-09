@@ -41,7 +41,7 @@ func (order *OrderReq) InsertOrder() (int64, error) {
 }
 
 func (order *OrderReq) UpdateOrderStatus() error {
-	_, err := db.Exec("update order set status = ?,pay_id = ? where order_id = ? and status =0", order.Status, order.PayId, order.OrderId)
+	_, err := db.Exec("update c_order set status = ?,pay_id = ?,effective = ? where order_id = ? and status =0", order.Status, order.PayId, order.Effective, order.OrderId)
 	if err != nil {
 		logrus.Error("mysql update order status err :%v", err)
 		return err
@@ -51,7 +51,7 @@ func (order *OrderReq) UpdateOrderStatus() error {
 }
 
 func (order *OrderReq) UpdateOrderEffective() error {
-	_, err := db.Exec("update order set effective = ? where order_id = ? and effective =0", order.Effective, order.OrderId)
+	_, err := db.Exec("update c_order set effective = ? where order_id = ? and effective =0", order.Effective, order.OrderId)
 	if err != nil {
 		logrus.Error("mysql update order effective error:", err)
 		return err

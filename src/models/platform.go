@@ -38,7 +38,7 @@ type BuyPackageResult struct {
 	TransSerial         string `json:"trans_serial"`
 	ErrCode             int    `json:"err_code"`
 	ErrDesc             string `json:"err_desc"`
-	DevicePackageId     string `json:"device_package_id"`
+	DevicePackageId     int    `json:"device_package_id"`
 	DevicePackageIdList string `json:"device_package_id_list"`
 	OrderId             string `json:"order_id"`
 }
