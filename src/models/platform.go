@@ -165,7 +165,8 @@ func PayPalDone(ctx iris.Context, order *mysql.OrderReq) {
 	rsp, err = http.PostForm(account.Url, data)
 	if err == nil {
 		if body, err = ioutil.ReadAll(rsp.Body); err == nil {
-			if err := json.Unmarshal(body, &buyResult); err == nil {
+			logrus.Debug("buyResult:", string(body))
+			if err = json.Unmarshal(body, &buyResult); err == nil {
 				if buyResult.ErrCode == 0 {
 					order := &mysql.OrderReq{
 						OrderId:   order.OrderId,
