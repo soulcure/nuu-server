@@ -23,10 +23,27 @@ type OrderReq struct {
 	Status        uint8  `db:"status" json:"status"`                //支付状态  0未支付，1已经支付
 	PayId         string `db:"pay_id" json:"payId"`                 //支付平台 支付ID
 	Count         uint8  `db:"count" json:"count"`                  //流量包数量
-	Money         string `db:"money" json:"money"`                  //流量包数量
+	Money         string `db:"money" json:"money"`                  //支付总金额
 	Effective     uint8  `db:"effective" json:"effective"`          //流量包是否生效，通知管理平台生效 0未生效，1已经生效
 	EffectiveType uint8  `db:"effective_type" json:"EffectiveType"` //生效类型
 	Discount      uint8  `db:"discount" json:"discount"`            //折扣  (0-100)
+}
+
+type BuyPackagePlatform struct {
+	Id       int    `db:"id" redis:"id,omitempty"`
+	UserId   int    `db:"user_id" json:"userId"`
+	Uuid     string `db:"uuid" redis:"uuid"`
+	DeviceSn string `db:"device_sn" redis:"device_sn"`
+
+	PackageId int    `db:"package_id" json:"packageId"`
+	Currency  string `db:"currency" json:"currency"` //货币 CNY,USD,HKD
+	Count     uint8  `db:"count" json:"count"`       //流量包数量
+	Money     string `db:"money" json:"money"`       //支付总金额
+	OrderTime string `db:"order_time" json:"orderTime"`
+
+	PlatformOrderId     string `db:"platform_order_id" redis:"platform_order_id"`
+	DevicePackageId     int    `db:"device_package_id" redis:"device_package_id"`
+	DevicePackageIdList string `db:"device_package_id_list" redis:"device_package_id_list"`
 }
 
 func (order *OrderReq) InsertOrder() (int64, error) {
@@ -50,12 +67,13 @@ func (order *OrderReq) UpdateOrderStatus() error {
 	return err
 }
 
-func (order *OrderReq) UpdateOrderEffective() error {
-	_, err := db.Exec("update c_order set effective = ? where order_id = ? and effective =0", order.Effective, order.OrderId)
+func (order *BuyPackagePlatform) InsertPlatformOrder() (int64, error) {
+	r, err := db.Exec("insert into p_order(user_id,uuid,device_sn,package_id,currency,count,money,order_time,platform_order_id,device_package_id,device_package_id_list)values(?,?,?,?,?,?,?,?,?,?,?)",
+		order.UserId, order.Uuid, order.DeviceSn, order.PackageId, order.Currency, order.Count, order.Money, order.OrderTime, order.PlatformOrderId, order.DevicePackageId, order.DevicePackageIdList)
 	if err != nil {
-		logrus.Error("mysql update order effective error:", err)
-		return err
+		logrus.Error("mysql Insert order err", err)
+		return 0, err
 	}
-	logrus.Debug("mysql update order effective success", order.OrderId)
-	return err
+	logrus.Info("mysql Insert order success :%v", r)
+	return r.LastInsertId()
 }

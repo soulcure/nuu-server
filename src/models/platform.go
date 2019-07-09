@@ -43,15 +43,6 @@ type BuyPackageResult struct {
 	OrderId             string `json:"order_id"`
 }
 
-type BuyPackagePlatform struct {
-	Id                  int    `db:"id" redis:"id,omitempty"`
-	Uuid                string `db:"uuid" redis:"uuid"`
-	DeviceSn            string `db:"device_sn" redis:"device_sn"`
-	PlatformOrderId     string `db:"platform_order_id" redis:"platform_order_id"`
-	DevicePackageId     string `db:"device_package_id" redis:"device_package_id"`
-	DevicePackageIdList string `db:"device_package_id_list" redis:"device_package_id_list"`
-}
-
 var (
 	account PlatformAccount
 )
@@ -177,14 +168,33 @@ func PayPalDone(ctx iris.Context, order *mysql.OrderReq) {
 
 					if err = order.UpdateOrderStatus(); err == nil {
 						if _, err = redis.DelKey(order.OrderId); err == nil {
-							var res ProtocolRsp
-							res.Code = OK
-							res.Msg = SUCCESS
-							res.Data = buyResult
-							res.ResponseWriter(ctx)
-							return
+							pOrder := &mysql.BuyPackagePlatform{
+								UserId:   order.UserId,
+								Uuid:     order.Uuid,
+								DeviceSn: order.DeviceSn,
+
+								PackageId: order.PackageId,
+								Currency:  order.Currency,
+								Count:     order.Count,
+								Money:     order.Money,
+								OrderTime: order.OrderTime,
+
+								PlatformOrderId:     buyResult.OrderId,
+								DevicePackageId:     buyResult.DevicePackageId,
+								DevicePackageIdList: buyResult.DevicePackageIdList,
+							}
+
+							if _, err = pOrder.InsertPlatformOrder(); err == nil {
+								var res ProtocolRsp
+								res.Code = OK
+								res.Msg = SUCCESS
+								res.Data = buyResult
+								res.ResponseWriter(ctx)
+								return
+							}
 						}
 					}
+
 				}
 			}
 		}
