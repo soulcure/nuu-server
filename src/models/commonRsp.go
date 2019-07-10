@@ -44,13 +44,14 @@ const (
 	LoginUserNameFormatErr = "login username format error:Number or letter does not limit capitalization 6-30 digits"
 	LoginEmailFormatErr    = "login email format error:Number or letter or symbol 6-30 digits"
 
-	ParamErr        = "Request Param Error"
-	GenOrderErr     = "Generate Order Error"
-	PackageIdErr    = "Found Package Id Error"
-	TokenErr        = "Token Error"
-	TokenExpiredErr = "Token Expired"
-	NoFoundErr      = "NoFound Error"
-	UnknownErr      = "Unknown Error"
+	ParamErr           = "Request Param Error"
+	GenOrderErr        = "Generate Order Error"
+	PackageIdErr       = "Found Package Id Error"
+	PackagePlatformErr = "Platform Package Error"
+	TokenErr           = "Token Error"
+	TokenExpiredErr    = "Token Expired"
+	NoFoundErr         = "NoFound Error"
+	UnknownErr         = "Unknown Error"
 )
 
 type ProtocolRsp struct {

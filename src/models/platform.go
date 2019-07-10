@@ -134,7 +134,6 @@ func QueryPackageForSale(ctx iris.Context) {
 }
 
 func PayPalDone(ctx iris.Context, order *mysql.OrderReq) {
-
 	data := make(url.Values)
 	data["itf_name"] = []string{account.PackagePayDone}
 	data["trans_serial"] = []string{account.TransSerial}
@@ -147,68 +146,62 @@ func PayPalDone(ctx iris.Context, order *mysql.OrderReq) {
 	data["valid_type"] = []string{fmt.Sprintf("%d", order.EffectiveType)}
 
 	var (
-		rsp       *http.Response
+		resp      *http.Response
 		err       error
 		body      []byte
 		buyResult BuyPackageResult
 	)
 
-	rsp, err = http.PostForm(account.Url, data)
-	if err == nil {
-		if body, err = ioutil.ReadAll(rsp.Body); err == nil {
-			logrus.Debug("buyResult:", string(body))
+	defer func() {
+		if err = resp.Body.Close(); err != nil {
+			logrus.Error("http resp body close err:", err)
+		}
+	}()
+
+	if resp, err = http.PostForm(account.Url, data); err == nil {
+		if body, err = ioutil.ReadAll(resp.Body); err == nil {
 			if err = json.Unmarshal(body, &buyResult); err == nil {
 				if buyResult.ErrCode == 0 {
-					order := &mysql.OrderReq{
-						OrderId:   order.OrderId,
-						PayId:     order.PayId,
-						Effective: 1,
-						Status:    1,
+					order.Effective = 1 //流量包已经生效
+
+					pOrder := &mysql.BuyPackagePlatform{
+						UserId:   order.UserId,
+						Uuid:     order.Uuid,
+						DeviceSn: order.DeviceSn,
+
+						PackageId: order.PackageId,
+						Currency:  order.Currency,
+						Count:     order.Count,
+						Money:     order.Money,
+						OrderTime: order.OrderTime,
+
+						PlatformOrderId:     buyResult.OrderId,
+						DevicePackageId:     buyResult.DevicePackageId,
+						DevicePackageIdList: buyResult.DevicePackageIdList,
 					}
 
-					if err = order.UpdateOrderStatus(); err == nil {
+					if err = mysql.UpdateOrderTX(order, pOrder); err == nil {
 						if _, err = redis.DelKey(order.OrderId); err == nil {
-							pOrder := &mysql.BuyPackagePlatform{
-								UserId:   order.UserId,
-								Uuid:     order.Uuid,
-								DeviceSn: order.DeviceSn,
-
-								PackageId: order.PackageId,
-								Currency:  order.Currency,
-								Count:     order.Count,
-								Money:     order.Money,
-								OrderTime: order.OrderTime,
-
-								PlatformOrderId:     buyResult.OrderId,
-								DevicePackageId:     buyResult.DevicePackageId,
-								DevicePackageIdList: buyResult.DevicePackageIdList,
-							}
-
-							if _, err = pOrder.InsertPlatformOrder(); err == nil {
-								var res ProtocolRsp
-								res.Code = OK
-								res.Msg = SUCCESS
-								res.Data = buyResult
-								res.ResponseWriter(ctx)
-								return
-							}
+							var res ProtocolRsp
+							res.Code = OK
+							res.Msg = SUCCESS
+							res.Data = buyResult
+							res.ResponseWriter(ctx)
+							return
 						}
 					}
-
 				}
 			}
 		}
 	}
 
-	defer func() {
-		if err = rsp.Body.Close(); err != nil {
-			logrus.Error("http resp body close err:", err)
-		}
-	}()
-
 	var res ProtocolRsp
 	res.Code = ReqPlatformErrCode
-	res.Msg = err.Error()
+	if err != nil {
+		res.Msg = err.Error()
+	} else {
+		res.Msg = PackagePlatformErr
+	}
 	res.ResponseWriter(ctx)
 
 }
@@ -226,7 +219,8 @@ func OrderPay(ctx iris.Context) {
 
 				orderBean := &mysql.OrderReq{}
 				if err := redis.GetStruct(orderId, orderBean); err == nil {
-					orderBean.PayId = paymentId
+					orderBean.Status = 1        //订单已经支付
+					orderBean.PayId = paymentId //支付订单号
 					PayPalDone(ctx, orderBean)
 				}
 

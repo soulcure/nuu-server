@@ -1,6 +1,7 @@
 package mysql
 
 import (
+	"database/sql"
 	"github.com/sirupsen/logrus"
 )
 
@@ -76,4 +77,60 @@ func (order *BuyPackagePlatform) InsertPlatformOrder() (int64, error) {
 	}
 	logrus.Info("mysql Insert order success :%v", r)
 	return r.LastInsertId()
+}
+
+func UpdateOrderTX(order *OrderReq, pOrder *BuyPackagePlatform) error {
+	tx, e := db.Begin()
+	if e != nil {
+		return e
+	}
+
+	r, err := tx.Exec("update c_order set status = ?,pay_id = ?,effective = ? where order_id = ? and status =0",
+		order.Status, order.PayId, order.Effective, order.OrderId)
+	if err != nil {
+		logrus.Error("mysql update order status err :", err)
+		txRollback(tx)
+		return err
+	} else {
+		rowAffected, err := r.RowsAffected()
+		if err != nil {
+			txRollback(tx)
+			logrus.Error("mysql update c_order error:", rowAffected)
+			return err
+		} else {
+			logrus.Debug("mysql update c_order success:", rowAffected)
+		}
+	}
+	logrus.Info("mysql update order status success", order.OrderId)
+
+	r, err = tx.Exec("insert into p_order(user_id,uuid,device_sn,package_id,currency,count,money,order_time,platform_order_id,device_package_id,device_package_id_list)values(?,?,?,?,?,?,?,?,?,?,?)",
+		pOrder.UserId, pOrder.Uuid, pOrder.DeviceSn, pOrder.PackageId, pOrder.Currency, pOrder.Count, pOrder.Money, pOrder.OrderTime, pOrder.PlatformOrderId, pOrder.DevicePackageId, pOrder.DevicePackageIdList)
+	if err != nil {
+		txRollback(tx)
+		logrus.Error("mysql insert p_order error:", err)
+		return err
+	} else {
+		rowAffected, err := r.RowsAffected()
+		if err != nil {
+			txRollback(tx)
+			logrus.Error("mysql insert p_order error:", rowAffected)
+			return err
+		} else {
+			logrus.Debug("mysql insert p_order success:", rowAffected)
+		}
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		txRollback(tx)
+		return err
+	}
+	return err
+}
+
+func txRollback(tx *sql.Tx) {
+	e := tx.Rollback()
+	if e != nil {
+		logrus.Error("tx.Rollback() Error:" + e.Error())
+	}
 }
