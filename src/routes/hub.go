@@ -28,8 +28,10 @@ func Hub(app *iris.Application) {
 	app.Get("/test", test)
 	app.Post("/register", registerHandler)
 	app.Post("/login", loginHandler)
-	app.Post("/detail", models.PackageDetailToday)
+
+	app.Post("/api/detail", models.PackageDetailToday)
 	app.Post("/api/sale", models.QueryPackageForSale)
+	app.Post("/api/package", models.PackageQuery)
 
 	//need login
 	app.Post("/api/update", tokenHandler, updateProfile)

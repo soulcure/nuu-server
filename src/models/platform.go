@@ -29,9 +29,10 @@ type PlatformAccount struct {
 	APIBaseLive string `yaml:"APIBaseLive"`
 
 	// platform api config
-	UsedTodayDetail string `yaml:"used_today_detail"`
-	PackageSale     string `yaml:"package_sale"`
-	PackagePayDone  string `yaml:"package_pay_done"`
+	UsedTodayDetail string `yaml:"used_today_detail"` //今天使用情况
+	PackageSale     string `yaml:"package_sale"`      //购买的套餐列表
+	PackagePayDone  string `yaml:"package_pay_done"`  //购买套餐
+	PackageQuery    string `yaml:"package_query"`     //所有流量包情况
 }
 
 type BuyPackageResult struct {
@@ -236,5 +237,38 @@ func OrderPay(ctx iris.Context) {
 			logrus.Error("GetAccessToken err:", err)
 		}
 	}
+
+}
+
+func PackageQuery(ctx iris.Context) {
+	deviceSn := ctx.FormValue("deviceSn")
+
+	data := make(url.Values)
+	data["itf_name"] = []string{account.PackageQuery}
+	data["trans_serial"] = []string{account.TransSerial}
+	data["login"] = []string{account.Login}
+	data["auth_code"] = []string{account.AuthCode}
+	data["device_sn"] = []string{deviceSn}
+
+	rsp, err := http.PostForm(account.Url, data)
+	if err == nil {
+		if body, err := ioutil.ReadAll(rsp.Body); err == nil {
+			if _, err := ctx.Write(body); err != nil {
+				logrus.Error(err)
+			}
+			return
+		}
+	}
+
+	defer func() {
+		if err = rsp.Body.Close(); err != nil {
+			logrus.Error("http resp body close err:", err)
+		}
+	}()
+
+	var res ProtocolRsp
+	res.Code = ReqPlatformErrCode
+	res.Msg = err.Error()
+	res.ResponseWriter(ctx)
 
 }
