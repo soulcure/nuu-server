@@ -2,6 +2,7 @@ package models
 
 import (
 	"encoding/json"
+	"errors"
 	"file"
 	"fmt"
 	"github.com/kataras/iris"
@@ -38,9 +39,9 @@ type BuyPackageResult struct {
 	TransSerial         string `json:"trans_serial"`
 	ErrCode             int    `json:"err_code"`
 	ErrDesc             string `json:"err_desc"`
-	DevicePackageId     int    `json:"device_package_id"`
-	DevicePackageIdList string `json:"device_package_id_list"`
-	OrderId             string `json:"order_id"`
+	DevicePackageId     int    `json:"device_package_id,omitempty"`
+	DevicePackageIdList string `json:"device_package_id_list,omitempty"`
+	OrderId             string `json:"order_id,omitempty"`
 }
 
 var (
@@ -160,6 +161,8 @@ func PayPalDone(ctx iris.Context, order *mysql.OrderReq) {
 
 	if resp, err = http.PostForm(account.Url, data); err == nil {
 		if body, err = ioutil.ReadAll(resp.Body); err == nil {
+			logrus.Debug("platform buy_package resp body :", string(body))
+
 			if err = json.Unmarshal(body, &buyResult); err == nil {
 				if buyResult.ErrCode == 0 {
 					order.Effective = 1 //流量包已经生效
@@ -190,6 +193,8 @@ func PayPalDone(ctx iris.Context, order *mysql.OrderReq) {
 							return
 						}
 					}
+				} else {
+					err = errors.New(buyResult.ErrDesc)
 				}
 			}
 		}

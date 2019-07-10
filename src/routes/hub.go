@@ -144,7 +144,7 @@ func loginHandler(ctx iris.Context) {
 func tokenHandler(ctx iris.Context) {
 	tokenString := ctx.GetHeader("token")
 	if tokenString == "" {
-		ctx.StatusCode(http.StatusUnauthorized)
+		//ctx.StatusCode(http.StatusUnauthorized)
 		var res models.ProtocolRsp
 		res.Code = models.NotLoginCode
 		res.Msg = models.TokenErr
