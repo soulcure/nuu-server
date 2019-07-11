@@ -33,6 +33,7 @@ func Hub(app *iris.Application) {
 	app.Post("/api/sale", models.QueryPackageForSale)
 	app.Post("/api/package", models.PackageQuery)
 	app.Post("/api/setting", models.SettWifiPassword)
+	app.Get("/api/news", news)
 
 	//need login
 	app.Post("/api/update", tokenHandler, updateProfile)
@@ -315,6 +316,22 @@ func payHistory(ctx iris.Context) {
 		res.ResponseWriter(ctx)
 	}
 
+}
+
+//查询所有新闻
+func news(ctx iris.Context) {
+	if pays, err := mysql.News(); err == nil {
+		var res models.ProtocolRsp
+		res.Code = models.OK
+		res.Msg = models.SUCCESS
+		res.Data = pays
+		res.ResponseWriter(ctx)
+	} else {
+		var res models.ProtocolRsp
+		res.Code = models.NewsErrCode
+		res.Msg = err.Error()
+		res.ResponseWriter(ctx)
+	}
 }
 
 func checkRegisterFormat(ctx iris.Context, username, email, mobile, iso, password string) bool {

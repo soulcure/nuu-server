@@ -49,6 +49,13 @@ type BuyPackagePlatform struct {
 	DevicePackageIdList string `db:"device_package_id_list" redis:"device_package_id_list"`
 }
 
+type NewsBean struct {
+	Id      int    `db:"id" redis:"id,omitempty"`
+	Title   int    `db:"title" json:"title"`
+	Time    string `db:"time" redis:"time"`
+	Content string `db:"content" redis:"content"`
+}
+
 func (order *OrderReq) InsertOrder() (int64, error) {
 	r, err := db.Exec("insert into c_order(user_id,uuid,order_id,price,currency,device_sn,package_id,package_name,order_time,begin_date,status,pay_id,count,money,effective,effective_type,discount)values(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
 		order.UserId, order.Uuid, order.OrderId, order.Price, order.Currency, order.DeviceSn, order.PackageId, order.PackageName, order.OrderTime, order.BeginDate, order.Status, order.PayId, order.Count, order.Money, order.Effective, order.EffectiveType, order.Discount)
@@ -98,6 +105,30 @@ func QueryPayHistory(userId int) ([]BuyPackagePlatform, error) {
 		var item BuyPackagePlatform
 		if err = rows.Scan(&item.Id, &item.UserId, &item.Uuid, &item.DeviceSn, &item.PackageId, &item.PackageName, &item.Currency, &item.Count, &item.Money, &item.OrderTime, &item.PlatformOrderId, &item.DevicePackageId, &item.DevicePackageIdList); err == nil {
 			res = append([]BuyPackagePlatform{item}, res...) // 在开头添加1个元素
+		} else {
+			break
+		}
+	}
+	return res, err
+}
+
+//查询账号的所有支付历史
+func News() ([]NewsBean, error) {
+	var (
+		res  []NewsBean
+		rows *sql.Rows
+		err  error
+	)
+
+	rows, err = db.Query("select * from news")
+	if err != nil {
+		return nil, err
+	}
+
+	for rows.Next() {
+		var item NewsBean
+		if err = rows.Scan(&item.Id, &item.Title, &item.Title, &item.Content); err == nil {
+			res = append([]NewsBean{item}, res...) // 在开头添加1个元素
 		} else {
 			break
 		}
