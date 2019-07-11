@@ -97,7 +97,6 @@ func QueryPayHistory(userId int) ([]BuyPackagePlatform, error) {
 	for rows.Next() {
 		var item BuyPackagePlatform
 		if err = rows.Scan(&item.Id, &item.UserId, &item.Uuid, &item.DeviceSn, &item.PackageId, &item.PackageName, &item.Currency, &item.Count, &item.Money, &item.OrderTime, &item.PlatformOrderId, &item.DevicePackageId, &item.DevicePackageIdList); err == nil {
-			//res = append(res, item)
 			res = append([]BuyPackagePlatform{item}, res...) // 在开头添加1个元素
 		} else {
 			break
