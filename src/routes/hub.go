@@ -38,6 +38,7 @@ func Hub(app *iris.Application) {
 	app.Post("/api/update", tokenHandler, updateProfile)
 	app.Post("/api/order", tokenHandler, genOrder)
 	app.Post("/api/pay", tokenHandler, models.OrderPay)
+	app.Post("/api/pay/history", tokenHandler, payHistory)
 }
 
 func test(ctx iris.Context) {
@@ -294,6 +295,25 @@ func genOrder(ctx iris.Context) {
 	res.Code = models.OrderErrCode
 	res.Msg = models.GenOrderErr
 	res.ResponseWriter(ctx)
+
+}
+
+//查询所有支付的订单
+func payHistory(ctx iris.Context) {
+	userId := int(ctx.Values().Get("id").(float64))
+
+	if pays, err := mysql.QueryPayHistory(userId); err == nil {
+		var res models.ProtocolRsp
+		res.Code = models.OK
+		res.Msg = models.SUCCESS
+		res.Data = pays
+		res.ResponseWriter(ctx)
+	} else {
+		var res models.ProtocolRsp
+		res.Code = models.PayHistoryErrCode
+		res.Msg = err.Error()
+		res.ResponseWriter(ctx)
+	}
 
 }
 

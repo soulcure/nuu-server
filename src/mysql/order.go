@@ -81,6 +81,30 @@ func (order *BuyPackagePlatform) InsertPlatformOrder() (int64, error) {
 	return r.LastInsertId()
 }
 
+//查询账号的所有支付历史
+func QueryPayHistory(userId int) ([]BuyPackagePlatform, error) {
+	var (
+		res  []BuyPackagePlatform
+		rows *sql.Rows
+		err  error
+	)
+
+	rows, err = db.Query("select * from p_order where user_id = ?", userId)
+	if err != nil {
+		return nil, err
+	}
+
+	for rows.Next() {
+		var item BuyPackagePlatform
+		if err = rows.Scan(&item.Id, &item.UserId, &item.Uuid, &item.DeviceSn, &item.PackageId, &item.PackageName, &item.Currency, &item.Count, &item.Money, &item.OrderTime, &item.PlatformOrderId, &item.DevicePackageId, &item.DevicePackageIdList); err == nil {
+			res = append(res, item)
+		} else {
+			break
+		}
+	}
+	return res, err
+}
+
 func UpdateOrderTX(order *OrderReq, pOrder *BuyPackagePlatform) error {
 	tx, e := db.Begin()
 	if e != nil {

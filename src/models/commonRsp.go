@@ -14,6 +14,7 @@ const (
 	RegisterErrCode    = 304 //注册失败
 	ReqPlatformErrCode = 305 //平台获取数据失败
 	OrderErrCode       = 306 //生成订单号失败
+	PayHistoryErrCode  = 307 //查询所有支付订单失败
 
 	ParamErrCode   = 401 //请求参数异常
 	NoFoundErrCode = 404 //Not Found
