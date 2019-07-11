@@ -51,7 +51,7 @@ type BuyPackagePlatform struct {
 
 type NewsBean struct {
 	Id      int    `db:"id" redis:"id,omitempty"`
-	Title   int    `db:"title" json:"title,omitempty"`
+	Title   string `db:"title" json:"title,omitempty"`
 	Time    string `db:"time" redis:"time,omitempty"`
 	Content string `db:"content" redis:"content,omitempty"`
 }
