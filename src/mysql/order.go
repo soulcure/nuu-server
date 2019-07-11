@@ -51,9 +51,9 @@ type BuyPackagePlatform struct {
 
 type NewsBean struct {
 	Id      int    `db:"id" redis:"id,omitempty"`
-	Title   int    `db:"title" json:"title"`
-	Time    string `db:"time" redis:"time"`
-	Content string `db:"content" redis:"content"`
+	Title   int    `db:"title" json:"title,omitempty"`
+	Time    string `db:"time" redis:"time,omitempty"`
+	Content string `db:"content" redis:"content,omitempty"`
 }
 
 func (order *OrderReq) InsertOrder() (int64, error) {
