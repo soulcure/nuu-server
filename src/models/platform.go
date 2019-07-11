@@ -33,6 +33,7 @@ type PlatformAccount struct {
 	PackageSale     string `yaml:"package_sale"`      //购买的套餐列表
 	PackagePayDone  string `yaml:"package_pay_done"`  //购买套餐
 	PackageQuery    string `yaml:"package_query"`     //所有流量包情况
+	SetupWifi       string `yaml:"setup_wifi"`        //设置wifi 名称和密码
 }
 
 type BuyPackageResult struct {
@@ -173,11 +174,12 @@ func PayPalDone(ctx iris.Context, order *mysql.OrderReq) {
 						Uuid:     order.Uuid,
 						DeviceSn: order.DeviceSn,
 
-						PackageId: order.PackageId,
-						Currency:  order.Currency,
-						Count:     order.Count,
-						Money:     order.Money,
-						OrderTime: order.OrderTime,
+						PackageId:   order.PackageId,
+						PackageName: order.PackageName,
+						Currency:    order.Currency,
+						Count:       order.Count,
+						Money:       order.Money,
+						OrderTime:   order.OrderTime,
 
 						PlatformOrderId:     buyResult.OrderId,
 						DevicePackageId:     buyResult.DevicePackageId,
@@ -249,6 +251,43 @@ func PackageQuery(ctx iris.Context) {
 	data["login"] = []string{account.Login}
 	data["auth_code"] = []string{account.AuthCode}
 	data["device_sn"] = []string{deviceSn}
+
+	rsp, err := http.PostForm(account.Url, data)
+	if err == nil {
+		if body, err := ioutil.ReadAll(rsp.Body); err == nil {
+			if _, err := ctx.Write(body); err != nil {
+				logrus.Error(err)
+			}
+			return
+		}
+	}
+
+	defer func() {
+		if err = rsp.Body.Close(); err != nil {
+			logrus.Error("http resp body close err:", err)
+		}
+	}()
+
+	var res ProtocolRsp
+	res.Code = ReqPlatformErrCode
+	res.Msg = err.Error()
+	res.ResponseWriter(ctx)
+
+}
+
+func SettWifiPassword(ctx iris.Context) {
+	deviceSn := ctx.FormValue("deviceSn")
+	name := ctx.FormValue("name")
+	password := ctx.FormValue("password")
+
+	data := make(url.Values)
+	data["itf_name"] = []string{account.SetupWifi}
+	data["trans_serial"] = []string{account.TransSerial}
+	data["login"] = []string{account.Login}
+	data["auth_code"] = []string{account.AuthCode}
+	data["device_sn"] = []string{deviceSn}
+	data["ssid"] = []string{name}
+	data["wifi_password"] = []string{password}
 
 	rsp, err := http.PostForm(account.Url, data)
 	if err == nil {

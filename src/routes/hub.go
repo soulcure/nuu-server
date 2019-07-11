@@ -32,6 +32,7 @@ func Hub(app *iris.Application) {
 	app.Post("/api/detail", models.PackageDetailToday)
 	app.Post("/api/sale", models.QueryPackageForSale)
 	app.Post("/api/package", models.PackageQuery)
+	app.Post("/api/setting", models.SettWifiPassword)
 
 	//need login
 	app.Post("/api/update", tokenHandler, updateProfile)
@@ -222,6 +223,7 @@ func genOrder(ctx iris.Context) {
 	price := ctx.FormValue("price") //need server check price
 	currency := ctx.FormValue("currency")
 	beginDate := ctx.FormValue("beginDate")
+	packageName := ctx.FormValue("packageName")
 
 	packageId, err := ctx.PostValueInt("packageId")
 	if err != nil {
@@ -255,15 +257,16 @@ func genOrder(ctx iris.Context) {
 	moneyStr := fmt.Sprintf("%.2f", money)
 
 	order := mysql.OrderReq{
-		UserId:    int(ctx.Values().Get("id").(float64)),
-		Uuid:      ctx.Values().Get("uuid").(string),
-		OrderId:   orderId,
-		Price:     price,
-		Currency:  currency,
-		DeviceSn:  deviceSn,
-		PackageId: packageId,
-		OrderTime: orderTime,
-		BeginDate: beginDate,
+		UserId:      int(ctx.Values().Get("id").(float64)),
+		Uuid:        ctx.Values().Get("uuid").(string),
+		OrderId:     orderId,
+		Price:       price,
+		Currency:    currency,
+		DeviceSn:    deviceSn,
+		PackageId:   packageId,
+		PackageName: packageName,
+		OrderTime:   orderTime,
+		BeginDate:   beginDate,
 
 		Status: 0,  //0未支付
 		PayId:  "", //等待客户端上传payment id
