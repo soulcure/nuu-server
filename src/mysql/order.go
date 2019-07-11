@@ -128,7 +128,7 @@ func News() ([]NewsBean, error) {
 	for rows.Next() {
 		var item NewsBean
 
-		if err = rows.Scan(&item.Id, &item.Title, &item.Time, &item.Content); err == nil {
+		if err = rows.Scan(&item.Id, &item.Title, &item.Content, &item.Time); err == nil {
 			res = append([]NewsBean{item}, res...) // 在开头添加1个元素
 		} else {
 			break
