@@ -63,14 +63,14 @@ func (order *OrderReq) InsertOrder() (int64, error) {
 		logrus.Error("mysql Insert order err", err)
 		return 0, err
 	}
-	logrus.Info("mysql Insert order success :%v", r)
+	logrus.Info("mysql Insert order success", r)
 	return r.LastInsertId()
 }
 
 func (order *OrderReq) UpdateOrderStatus() error {
 	_, err := db.Exec("update c_order set status = ?,pay_id = ?,effective = ? where order_id = ? and status =0", order.Status, order.PayId, order.Effective, order.OrderId)
 	if err != nil {
-		logrus.Error("mysql update order status err :%v", err)
+		logrus.Error("mysql update order status err", err)
 		return err
 	}
 	logrus.Info("mysql update order status success", order.OrderId)
@@ -84,7 +84,7 @@ func (order *BuyPackagePlatform) InsertPlatformOrder() (int64, error) {
 		logrus.Error("mysql Insert order err", err)
 		return 0, err
 	}
-	logrus.Info("mysql Insert order success :%v", r)
+	logrus.Info("mysql Insert order success", r)
 	return r.LastInsertId()
 }
 

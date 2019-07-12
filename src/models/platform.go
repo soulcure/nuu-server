@@ -97,12 +97,12 @@ func PackageDetailToday(ctx iris.Context) {
 
 func QueryPackageForSale(ctx iris.Context) {
 	deviceSn := ctx.FormValue("deviceSn")
-	if body, err := redis.GetBytes(deviceSn); err == nil {
+	/*if body, err := redis.GetBytes(deviceSn); err == nil {
 		if _, err := ctx.Write(body); err != nil {
 			logrus.Error("QueryPackageForSale error", err)
 		}
 		return
-	}
+	}*/
 
 	data := make(url.Values)
 	data["itf_name"] = []string{account.PackageSale}
@@ -114,12 +114,12 @@ func QueryPackageForSale(ctx iris.Context) {
 	rsp, err := http.PostForm(account.Url, data)
 	if err == nil {
 		if body, err := ioutil.ReadAll(rsp.Body); err == nil {
-			if _, err := redis.SetBytes(deviceSn, body); err == nil {
-				if _, err := ctx.Write(body); err != nil {
-					logrus.Error(err)
-				}
-				return
+			//if _, err := redis.SetBytes(deviceSn, body); err == nil {
+			if _, err := ctx.Write(body); err != nil {
+				logrus.Error(err)
 			}
+			return
+			//}
 		}
 	}
 
