@@ -34,6 +34,7 @@ type PlatformAccount struct {
 	PackagePayDone  string `yaml:"package_pay_done"`  //购买套餐
 	PackageQuery    string `yaml:"package_query"`     //所有流量包情况
 	SetupWifi       string `yaml:"setup_wifi"`        //设置wifi 名称和密码
+	UsedDetail      string `yaml:"used_detail"`       //查询使用详情
 }
 
 type BuyPackageResult struct {
@@ -288,6 +289,43 @@ func SettWifiPassword(ctx iris.Context) {
 	data["device_sn"] = []string{deviceSn}
 	data["ssid"] = []string{name}
 	data["wifi_password"] = []string{password}
+
+	rsp, err := http.PostForm(account.Url, data)
+	if err == nil {
+		if body, err := ioutil.ReadAll(rsp.Body); err == nil {
+			if _, err := ctx.Write(body); err != nil {
+				logrus.Error(err)
+			}
+			return
+		}
+	}
+
+	defer func() {
+		if err = rsp.Body.Close(); err != nil {
+			logrus.Error("http resp body close err:", err)
+		}
+	}()
+
+	var res ProtocolRsp
+	res.Code = ReqPlatformErrCode
+	res.Msg = err.Error()
+	res.ResponseWriter(ctx)
+
+}
+
+func UsedDetailPeriod(ctx iris.Context) {
+	deviceSn := ctx.FormValue("deviceSn")
+	beginDate := ctx.FormValue("beginDate")
+	endDate := ctx.FormValue("endDate")
+
+	data := make(url.Values)
+	data["itf_name"] = []string{account.UsedDetail}
+	data["trans_serial"] = []string{account.TransSerial}
+	data["login"] = []string{account.Login}
+	data["auth_code"] = []string{account.AuthCode}
+	data["device_sn"] = []string{deviceSn}
+	data["begin_date"] = []string{beginDate}
+	data["end_date"] = []string{endDate}
 
 	rsp, err := http.PostForm(account.Url, data)
 	if err == nil {

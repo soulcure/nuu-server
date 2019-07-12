@@ -30,6 +30,7 @@ func Hub(app *iris.Application) {
 	app.Post("/login", loginHandler)
 
 	app.Post("/api/detail", models.PackageDetailToday)
+	app.Post("/api/period", models.UsedDetailPeriod)
 	app.Post("/api/sale", models.QueryPackageForSale)
 	app.Post("/api/package", models.PackageQuery)
 	app.Post("/api/setting", models.SettWifiPassword)
