@@ -377,7 +377,7 @@ func SendPasswordEmail(ctx iris.Context) {
 	}
 
 	if password, err := mysql.AccountByEmail(email); err == nil {
-		if err := sendEmail(password, account.Smtp, account.SendAccount, account.SendPassword); err == nil {
+		if err := sendEmail(account.Smtp, account.SendAccount, account.SendPassword, email, password); err == nil {
 			var res ProtocolRsp
 			res.Code = OK
 			res.Msg = SUCCESS
@@ -397,7 +397,7 @@ func SendPasswordEmail(ctx iris.Context) {
 	}
 }
 
-func sendEmail(password, sendSmtp, sendAccount, sendPassword string) error {
+func sendEmail(smtp, sendAccount, sendPassword, toAccount, content string) error {
 	m := python.PyImport_ImportModule("sys")
 	if m == nil {
 		return errors.New("import sys error")
@@ -412,7 +412,7 @@ func sendEmail(password, sendSmtp, sendAccount, sendPassword string) error {
 		return errors.New("get path error")
 	}
 
-	m = python.PyImport_ImportModule("password_email")
+	m = python.PyImport_ImportModule("send_email")
 	if m == nil {
 		return errors.New("import password_email error")
 	}
@@ -421,9 +421,9 @@ func sendEmail(password, sendSmtp, sendAccount, sendPassword string) error {
 		return errors.New("get sendEmail error")
 	}
 
-	out := sendEmail.CallFunction(python.PyString_FromString(password),
+	out := sendEmail.CallFunction(python.PyString_FromString(smtp),
 		python.PyString_FromString(sendAccount), python.PyString_FromString(sendPassword),
-		python.PyString_FromString(sendSmtp))
+		python.PyString_FromString(toAccount), python.PyString_FromString(content))
 	if out == nil {
 		return errors.New("call sendEmail error")
 	}
