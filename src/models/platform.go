@@ -399,11 +399,11 @@ func SendPasswordEmail(ctx iris.Context) {
 
 func sendEmail(smtp, sendAccount, sendPassword, toAccount, content string) error {
 
-	logrus.Debug(smtp)
-	logrus.Debug(sendAccount)
-	logrus.Debug(sendPassword)
-	logrus.Debug(toAccount)
-	logrus.Debug(content)
+	logrus.Debug("smtp:", smtp)
+	logrus.Debug("sendAccount:", sendAccount)
+	logrus.Debug("sendPassword:", sendPassword)
+	logrus.Debug("toAccount:", toAccount)
+	logrus.Debug("content:", content)
 
 	m := python.PyImport_ImportModule("sys")
 	if m == nil {
@@ -413,11 +413,15 @@ func sendEmail(smtp, sendAccount, sendPassword, toAccount, content string) error
 	if path == nil {
 		return errors.New("get path error")
 	}
+	logrus.Debug("test0")
+
 	//加入当前目录，空串表示当前目录
 	currentDir := python.PyString_FromString("/data/backend_svr/tools")
 	if err := python.PyList_Insert(path, 0, currentDir); err != nil {
 		return errors.New("get path error")
 	}
+
+	logrus.Debug("test1")
 
 	m = python.PyImport_ImportModule("password_email")
 	if m == nil {
@@ -428,7 +432,11 @@ func sendEmail(smtp, sendAccount, sendPassword, toAccount, content string) error
 		return errors.New("get sendEmail error")
 	}
 
-	out := sendEmail.CallFunction(python.PyString_FromString(smtp), python.PyString_FromString(sendAccount), python.PyString_FromString(sendPassword), python.PyString_FromString(toAccount), python.PyString_FromString(content))
+	logrus.Debug("test2")
+
+	out := sendEmail.CallFunction(python.PyString_FromString(smtp),
+		python.PyString_FromString(sendAccount), python.PyString_FromString(sendPassword),
+		python.PyString_FromString(toAccount), python.PyString_FromString(content))
 	if out == nil {
 		return errors.New("call sendEmail error")
 	}
