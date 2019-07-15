@@ -412,7 +412,7 @@ func sendEmail(smtp, sendAccount, sendPassword, toAccount, content string) error
 		return errors.New("get path error")
 	}
 
-	m = python.PyImport_ImportModule("send_email")
+	m = python.PyImport_ImportModule("password_email")
 	if m == nil {
 		return errors.New("import password_email error")
 	}
