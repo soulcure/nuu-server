@@ -6,6 +6,7 @@ import (
 	"file"
 	"fmt"
 	"github.com/kataras/iris"
+	"github.com/sbinet/go-python"
 	"github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
@@ -15,6 +16,7 @@ import (
 	"os"
 	"paypal"
 	"redis"
+	"utils"
 )
 
 type PlatformAccount struct {
@@ -35,6 +37,10 @@ type PlatformAccount struct {
 	PackageQuery    string `yaml:"package_query"`     //所有流量包情况
 	SetupWifi       string `yaml:"setup_wifi"`        //设置wifi 名称和密码
 	UsedDetail      string `yaml:"used_detail"`       //查询使用详情
+
+	Smtp         string `yaml:"smtp"`          //邮箱地址 类型
+	SendAccount  string `yaml:"send_account"`  //发件人账号
+	SendPassword string `yaml:"send_password"` //发件人密码
 }
 
 type BuyPackageResult struct {
@@ -348,4 +354,79 @@ func UsedDetailPeriod(ctx iris.Context) {
 	res.Msg = err.Error()
 	res.ResponseWriter(ctx)
 
+}
+
+//找回密码
+func SendPasswordEmail(ctx iris.Context) {
+	email := ctx.FormValue("email")
+
+	if email == "" {
+		var res ProtocolRsp
+		res.Code = AccountErrCode
+		res.Msg = EmailEmptyErr
+		res.ResponseWriter(ctx)
+		return
+	}
+
+	if !utils.IsEmail(email) {
+		var res ProtocolRsp
+		res.Code = AccountErrCode
+		res.Msg = EmailFormatErr
+		res.ResponseWriter(ctx)
+		return
+	}
+
+	if password, err := mysql.AccountByEmail(email); err == nil {
+		if err := sendEmail(password, account.Smtp, account.SendAccount, account.SendPassword); err == nil {
+			var res ProtocolRsp
+			res.Code = OK
+			res.Msg = SUCCESS
+			res.ResponseWriter(ctx)
+		} else {
+			var res ProtocolRsp
+			res.Code = AccountErrCode
+			res.Msg = err.Error()
+			res.ResponseWriter(ctx)
+		}
+
+	} else {
+		var res ProtocolRsp
+		res.Code = AccountErrCode
+		res.Msg = err.Error()
+		res.ResponseWriter(ctx)
+	}
+}
+
+func sendEmail(password, sendSmtp, sendAccount, sendPassword string) error {
+	m := python.PyImport_ImportModule("sys")
+	if m == nil {
+		return errors.New("import sys error")
+	}
+	path := m.GetAttrString("path")
+	if path == nil {
+		return errors.New("get path error")
+	}
+	//加入当前目录，空串表示当前目录
+	currentDir := python.PyString_FromString("/data/backend_svr/tools")
+	if err := python.PyList_Insert(path, 0, currentDir); err != nil {
+		return errors.New("get path error")
+	}
+
+	m = python.PyImport_ImportModule("password_email")
+	if m == nil {
+		return errors.New("import password_email error")
+	}
+	sendEmail := m.GetAttrString("send_email")
+	if sendEmail == nil {
+		return errors.New("get sendEmail error")
+	}
+
+	out := sendEmail.CallFunction(python.PyString_FromString(password),
+		python.PyString_FromString(sendAccount), python.PyString_FromString(sendPassword),
+		python.PyString_FromString(sendSmtp))
+	if out == nil {
+		return errors.New("call sendEmail error")
+	}
+
+	return nil
 }

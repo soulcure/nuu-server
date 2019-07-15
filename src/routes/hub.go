@@ -34,6 +34,8 @@ func Hub(app *iris.Application) {
 	app.Post("/api/sale", models.QueryPackageForSale)
 	app.Post("/api/package", models.PackageQuery)
 	app.Post("/api/setting", models.SettWifiPassword)
+	app.Post("/api/forget/password", models.SendPasswordEmail)
+
 	app.Get("/api/news", news)
 
 	//need login

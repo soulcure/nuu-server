@@ -16,6 +16,7 @@ const (
 	OrderErrCode       = 306 //生成订单号失败
 	PayHistoryErrCode  = 307 //查询所有支付订单失败
 	NewsErrCode        = 308 //查询新闻失败
+	AccountErrCode     = 309 //查询账号失败
 
 	ParamErrCode   = 401 //请求参数异常
 	NoFoundErrCode = 404 //Not Found
@@ -32,6 +33,8 @@ const (
 
 	RegisterEmailEmptyErr  = "Registered email is empty"
 	RegisterEmailFormatErr = "Registered email format error:Number or letter or symbol 6-30 digits"
+	EmailEmptyErr          = "Email is empty"
+	EmailFormatErr         = "Email format error:Number or letter or symbol 6-30 digits"
 
 	RegisterMobileEmptyErr  = "Registered mobile is empty"
 	RegisterMobileFormatErr = "Registered mobile format error"

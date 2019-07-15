@@ -58,3 +58,14 @@ func AccountLogin(userName, email, password string) (Account, error) {
 
 	return account, err
 }
+
+func AccountByEmail(email string) (string, error) {
+	var account Account
+
+	row := db.QueryRow("select * from account where email = ?", email)
+
+	err := row.Scan(&account.Id, &account.Uuid, &account.UserName,
+		&account.Mobile, &account.Email, &account.Iso, &account.Password)
+
+	return account.Password, err
+}

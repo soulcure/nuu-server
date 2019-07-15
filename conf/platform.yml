@@ -20,3 +20,10 @@ package_pay_done: buy_package
 package_query: query_package
 setup_wifi: device_wifi_setup
 used_detail: query_used_package
+
+
+# send email
+
+smtp: smtp.exmail.qq.com
+send_account: qius@edaceo.com
+send_password: 1991ly2009
