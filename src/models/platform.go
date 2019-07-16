@@ -58,7 +58,7 @@ var (
 )
 
 func init() {
-	path := "./conf/platform.yml"
+	path := "./conf/config.yml"
 	if _, err := os.Stat(path); os.IsNotExist(err) {
 		logrus.Panic("platform conf file does not exist")
 	}

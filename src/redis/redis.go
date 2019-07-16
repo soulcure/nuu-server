@@ -6,7 +6,6 @@ import (
 	"github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
-	"log"
 	"math/rand"
 	"os"
 	"time"
@@ -29,14 +28,14 @@ var (
 )
 
 func init() {
-	path := "./conf/db.yml"
+	path := "./conf/config.yml"
 	if _, err := os.Stat(path); os.IsNotExist(err) {
 		panic("db conf file does not exist")
 	}
 
 	data, _ := ioutil.ReadFile(path)
 	if err := yaml.Unmarshal(data, &redisConfig); err != nil {
-		log.Panic("db conf yaml Unmarshal error ")
+		logrus.Panic("db conf yaml Unmarshal error ")
 	}
 
 	address := getConnURL(&redisConfig.Redis)
@@ -48,7 +47,7 @@ func init() {
 		Dial: func() (redis.Conn, error) {
 			conn, err := redis.Dial("tcp", address)
 			if err != nil {
-				log.Panic("redis init error")
+				logrus.Panic("redis init error")
 				return nil, err
 			}
 
@@ -60,7 +59,7 @@ func init() {
 				}
 			}
 
-			log.Print("redis connect to ", address)
+			logrus.Print("redis connect to ", address)
 			return conn, err
 		},
 	}

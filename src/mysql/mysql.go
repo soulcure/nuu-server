@@ -4,9 +4,9 @@ import (
 	"database/sql"
 	"fmt"
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
-	"log"
 	"os"
 )
 
@@ -30,25 +30,25 @@ var (
 )
 
 func init() {
-	path := "./conf/db.yml"
+	path := "./conf/config.yml"
 	if _, err := os.Stat(path); os.IsNotExist(err) {
 		panic("db conf file does not exist")
 	}
 
 	data, _ := ioutil.ReadFile(path)
 	if err := yaml.Unmarshal(data, &dbConfig); err != nil {
-		log.Panic("db conf yaml Unmarshal error ")
+		logrus.Panic("db conf yaml Unmarshal error ")
 	}
 
 	dbName := getConnURL(&dbConfig.Mysql)
 
 	database, err := sql.Open("mysql", dbName)
 	if err != nil {
-		log.Panic("mysql can not connect")
+		logrus.Panic("mysql can not connect")
 		return
 	}
 	db = database
-	log.Print("mysql connect at ", dbName)
+	logrus.Print("mysql connect at ", dbName)
 }
 
 func getConnURL(info *DBInfo) (url string) {
