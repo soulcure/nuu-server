@@ -3,7 +3,6 @@ package cpython
 import (
 	"errors"
 	"github.com/sbinet/go-python"
-	"github.com/sirupsen/logrus"
 )
 
 var pyModule, ut, exec, compile *python.PyObject
@@ -35,12 +34,6 @@ func ImportModule(dir, name string) *python.PyObject {
 func SendEmail(smtp, sendAccount, sendPassword, toAccount, content string) error {
 	python.PyEval_RestoreThread(pyThreadState)
 
-	logrus.Debug("smtp:", smtp)
-	logrus.Debug("sendAccount:", sendAccount)
-	logrus.Debug("sendPassword:", sendPassword)
-	logrus.Debug("toAccount:", toAccount)
-	logrus.Debug("content:", content)
-
 	m := python.PyImport_ImportModule("sys")
 	if m == nil {
 		return errors.New("import sys error")
@@ -49,15 +42,12 @@ func SendEmail(smtp, sendAccount, sendPassword, toAccount, content string) error
 	if path == nil {
 		return errors.New("get path error")
 	}
-	logrus.Debug("test0")
 
 	//加入当前目录，空串表示当前目录
 	currentDir := python.PyString_FromString("/data/backend_svr/tools")
 	if err := python.PyList_Insert(path, 0, currentDir); err != nil {
 		return errors.New("get path error")
 	}
-
-	logrus.Debug("test1")
 
 	m = python.PyImport_ImportModule("password_email")
 	if m == nil {
@@ -67,8 +57,6 @@ func SendEmail(smtp, sendAccount, sendPassword, toAccount, content string) error
 	if sendEmail == nil {
 		return errors.New("get sendEmail error")
 	}
-
-	logrus.Debug("test2")
 
 	out := sendEmail.CallFunction(python.PyString_FromString(smtp),
 		python.PyString_FromString(sendAccount), python.PyString_FromString(sendPassword),
