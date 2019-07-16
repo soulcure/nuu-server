@@ -1,12 +1,12 @@
 package models
 
 import (
+	"cpython"
 	"encoding/json"
 	"errors"
 	"file"
 	"fmt"
 	"github.com/kataras/iris"
-	"github.com/sbinet/go-python"
 	"github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
@@ -377,7 +377,7 @@ func SendPasswordEmail(ctx iris.Context) {
 	}
 
 	if password, err := mysql.AccountByEmail(email); err == nil {
-		if err := sendEmail(account.Smtp, account.SendAccount, account.SendPassword, email, password); err == nil {
+		if err := cpython.SendEmail(account.Smtp, account.SendAccount, account.SendPassword, email, password); err == nil {
 			var res ProtocolRsp
 			res.Code = OK
 			res.Msg = SUCCESS
@@ -395,51 +395,4 @@ func SendPasswordEmail(ctx iris.Context) {
 		res.Msg = err.Error()
 		res.ResponseWriter(ctx)
 	}
-}
-
-func sendEmail(smtp, sendAccount, sendPassword, toAccount, content string) error {
-
-	logrus.Debug("smtp:", smtp)
-	logrus.Debug("sendAccount:", sendAccount)
-	logrus.Debug("sendPassword:", sendPassword)
-	logrus.Debug("toAccount:", toAccount)
-	logrus.Debug("content:", content)
-
-	m := python.PyImport_ImportModule("sys")
-	if m == nil {
-		return errors.New("import sys error")
-	}
-	path := m.GetAttrString("path")
-	if path == nil {
-		return errors.New("get path error")
-	}
-	logrus.Debug("test0")
-
-	//加入当前目录，空串表示当前目录
-	currentDir := python.PyString_FromString("/data/backend_svr/tools")
-	if err := python.PyList_Insert(path, 0, currentDir); err != nil {
-		return errors.New("get path error")
-	}
-
-	logrus.Debug("test1")
-
-	m = python.PyImport_ImportModule("password_email")
-	if m == nil {
-		return errors.New("import password_email error")
-	}
-	sendEmail := m.GetAttrString("send_email")
-	if sendEmail == nil {
-		return errors.New("get sendEmail error")
-	}
-
-	logrus.Debug("test2")
-
-	out := sendEmail.CallFunction(python.PyString_FromString(smtp),
-		python.PyString_FromString(sendAccount), python.PyString_FromString(sendPassword),
-		python.PyString_FromString(toAccount), python.PyString_FromString(content))
-	if out == nil {
-		return errors.New("call sendEmail error")
-	}
-
-	return nil
 }
