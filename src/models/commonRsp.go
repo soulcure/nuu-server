@@ -8,9 +8,10 @@ import (
 const (
 	OK = 0
 
-	NotLoginCode       = 301 //未登录
-	LoginErrCode       = 302 //登录失败
-	TokenExpCode       = 303 //token失效
+	NotLoginCode = 300 //未登录
+	TokenExpCode = 301 //token失效
+
+	LoginErrCode       = 303 //登录失败
 	RegisterErrCode    = 304 //注册失败
 	ReqPlatformErrCode = 305 //平台获取数据失败
 	OrderErrCode       = 306 //生成订单号失败
