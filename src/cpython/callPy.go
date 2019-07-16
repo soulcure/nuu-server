@@ -6,10 +6,12 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-var pyModule, ut, exec, compile *python.PyObject
+//var pyModule, ut, exec, compile *python.PyObject
+var pyModule *python.PyObject
 var pyThreadState *python.PyThreadState
 var PyStr = python.PyString_FromString
-var GoStr = python.PyString_AS_STRING
+
+//var GoStr = python.PyString_AS_STRING
 
 func init() {
 	err := python.Initialize()
@@ -18,9 +20,9 @@ func init() {
 	}
 
 	pyModule = python.PyImport_ImportModule("sys")
-	ut = pyModule.GetAttrString("ut")
-	exec = pyModule.GetAttrString("exec_code")
-	compile = pyModule.GetAttrString("compile")
+	//ut = pyModule.GetAttrString("ut")
+	//exec = pyModule.GetAttrString("exec_code")
+	//compile = pyModule.GetAttrString("compile")
 	pyThreadState = python.PyEval_SaveThread()
 }
 
