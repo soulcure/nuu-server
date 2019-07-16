@@ -3,6 +3,7 @@ package cpython
 import (
 	"errors"
 	"github.com/sbinet/go-python"
+	"github.com/sirupsen/logrus"
 )
 
 var pyModule, ut, exec, compile *python.PyObject
@@ -27,29 +28,18 @@ func init() {
 func ImportModule(dir, name string) *python.PyObject {
 	sysModule := python.PyImport_ImportModule("sys") // import sys
 	path := sysModule.GetAttrString("path")          // path = sys.path
-	python.PyList_Insert(path, 0, PyStr(dir))        // path.insert(0, dir)
-	return python.PyImport_ImportModule(name)        // return __import__(name)
+
+	if err := python.PyList_Insert(path, 0, PyStr(dir)); err != nil {
+		logrus.Error("ImportModule error")
+	}
+
+	return python.PyImport_ImportModule(name) // return __import__(name)
 }
 
 func SendEmail(smtp, sendAccount, sendPassword, toAccount, content string) error {
 	python.PyEval_RestoreThread(pyThreadState)
 
-	m := python.PyImport_ImportModule("sys")
-	if m == nil {
-		return errors.New("import sys error")
-	}
-	path := m.GetAttrString("path")
-	if path == nil {
-		return errors.New("get path error")
-	}
-
-	//加入当前目录，空串表示当前目录
-	currentDir := python.PyString_FromString("/data/backend_svr/tools")
-	if err := python.PyList_Insert(path, 0, currentDir); err != nil {
-		return errors.New("get path error")
-	}
-
-	m = python.PyImport_ImportModule("password_email")
+	m := ImportModule("/data/backend_svr/tools", "password_email")
 	if m == nil {
 		return errors.New("import password_email error")
 	}
