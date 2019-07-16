@@ -6,8 +6,6 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-//var pyModule, ut, exec, compile *python.PyObject
-var pyModule *python.PyObject
 var pyThreadState *python.PyThreadState
 var PyStr = python.PyString_FromString
 
@@ -18,11 +16,7 @@ func init() {
 	if err != nil {
 		panic(err.Error())
 	}
-
-	pyModule = python.PyImport_ImportModule("sys")
-	//ut = pyModule.GetAttrString("ut")
-	//exec = pyModule.GetAttrString("exec_code")
-	//compile = pyModule.GetAttrString("compile")
+	python.PyImport_ImportModule("sys")
 	pyThreadState = python.PyEval_SaveThread()
 }
 
@@ -38,7 +32,7 @@ func ImportModule(dir, name string) *python.PyObject {
 	return python.PyImport_ImportModule(name) // return __import__(name)
 }
 
-func SendEmail(smtp, sendAccount, sendPassword, toAccount, content string) error {
+func SendEmail(addrSMTP, sendAccount, sendPassword, toAccount, content string) error {
 	python.PyEval_RestoreThread(pyThreadState)
 
 	m := ImportModule("/data/backend_svr/tools", "password_email")
@@ -50,7 +44,7 @@ func SendEmail(smtp, sendAccount, sendPassword, toAccount, content string) error
 		return errors.New("get sendEmail error")
 	}
 
-	out := sendEmail.CallFunction(python.PyString_FromString(smtp),
+	out := sendEmail.CallFunction(python.PyString_FromString(addrSMTP),
 		python.PyString_FromString(sendAccount), python.PyString_FromString(sendPassword),
 		python.PyString_FromString(toAccount), python.PyString_FromString(content))
 
