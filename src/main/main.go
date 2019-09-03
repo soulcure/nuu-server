@@ -36,7 +36,9 @@ func main() {
 
 	config := iris.WithConfiguration(iris.YAML("./conf/config.yml"))
 
-	if err := app.Run(iris.Addr(":8899"), config); err != nil {
+	runner := iris.Addr(":8899")
+	//runner := iris.TLS(":8899", "./conf/server.crt", "./conf/server.key") //https
+	if err := app.Run(runner, config); err != nil {
 		logrus.Error(err)
 	}
 
