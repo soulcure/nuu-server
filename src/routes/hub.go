@@ -175,7 +175,7 @@ func tokenHandler(ctx iris.Context) {
 
 		ctx.Next()
 	} else {
-		ctx.StatusCode(http.StatusUnauthorized)
+		//ctx.StatusCode(http.StatusUnauthorized)
 		var res models.ProtocolRsp
 		res.Code = models.TokenExpCode
 		res.Msg = models.TokenExpiredErr
