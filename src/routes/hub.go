@@ -3,16 +3,16 @@ package routes
 import (
 	"fmt"
 	"github.com/dgrijalva/jwt-go"
-	"github.com/kataras/iris"
+	"github.com/kataras/iris/v12"
 	uuid "github.com/satori/go.uuid"
 	"github.com/sirupsen/logrus"
-	"models"
-	"mysql"
 	"net/http"
-	"redis"
+	"nuu-server/src/models"
+	"nuu-server/src/mysql"
+	"nuu-server/src/redis"
+	"nuu-server/src/utils"
 	"strconv"
 	"time"
-	"utils"
 )
 
 const (
@@ -75,7 +75,7 @@ func registerHandler(ctx iris.Context) {
 	password := ctx.FormValue("password")
 
 	if checkRegisterFormat(ctx, username, email, mobile, iso, password) {
-		userUuid := uuid.Must(uuid.NewV4()).String()
+		userUuid := uuid.NewV4().String()
 		logrus.Debug("user register uuid:", userUuid)
 		if id, err := mysql.RegisterInsert(userUuid, username, email, mobile, iso, password); err == nil {
 			logrus.Debug("user register success")

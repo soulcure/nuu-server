@@ -1,10 +1,10 @@
 package main
 
 import (
-	"file"
-	"github.com/kataras/iris"
+	"github.com/kataras/iris/v12"
 	"github.com/sirupsen/logrus"
-	"routes"
+	"nuu-server/src/file"
+	"nuu-server/src/routes"
 )
 
 func init() {
