@@ -51,20 +51,18 @@ func test(ctx iris.Context) {
 }
 
 func notFound(ctx iris.Context) {
-	ctx.StatusCode(http.StatusNotFound)
-	var res models.ProtocolRsp
+	var res models.ErrorRsp
 	res.Code = models.NoFoundErrCode
-	res.Msg = models.NoFoundErr
-	res.ResponseWriter(ctx)
+	res.Message = models.NoFoundErr
+	res.ResponseWriter(ctx, http.StatusNotFound)
 }
 
 //当出现错误的时候，再试一次
 func internalServerError(ctx iris.Context) {
-	ctx.StatusCode(http.StatusRequestTimeout)
-	var res models.ProtocolRsp
+	var res models.ErrorRsp
 	res.Code = models.UnknownErrCode
-	res.Msg = models.UnknownErr
-	res.ResponseWriter(ctx)
+	res.Message = models.UnknownErr
+	res.ResponseWriter(ctx, http.StatusInternalServerError)
 }
 
 //用户注册处理函数
@@ -91,23 +89,20 @@ func registerHandler(ctx iris.Context) {
 				logrus.Debug(username, "  set Token:", token)
 				var res models.ProtocolRsp
 
-				res.Code = models.OK
-				res.Msg = models.SUCCESS
 				res.Data = &models.RegisterRsp{Id: userId, Uuid: userUuid, UserName: username, Email: email, PassWord: password, Token: token, Expired: exp}
-				res.ResponseWriter(ctx)
+				res.ResponseWriter(ctx, http.StatusOK)
 			} else {
-				var res models.ProtocolRsp
+				var res models.ErrorRsp
 				res.Code = models.RegisterErrCode
-				res.Msg = err.Error()
-				res.ResponseWriter(ctx)
+				res.Message = err.Error()
+				res.ResponseWriter(ctx, http.StatusBadRequest)
 			}
 		} else {
-			var res models.ProtocolRsp
+			var res models.ErrorRsp
 			res.Code = models.RegisterErrCode
-			res.Msg = err.Error()
+			res.Message = err.Error()
 
-			ctx.StatusCode(http.StatusBadRequest)
-			res.ResponseWriter(ctx)
+			res.ResponseWriter(ctx, http.StatusBadRequest)
 		}
 
 	}
@@ -132,22 +127,20 @@ func loginHandler(ctx iris.Context) {
 			if token, err := token.SignedString([]byte(SecretKey)); err == nil {
 				logrus.Debug(username, "  set Token:", token)
 				var res models.ProtocolRsp
-				res.Code = models.OK
-				res.Msg = models.SUCCESS
 				res.Data = &models.LoginRsp{Token: token, Expired: exp, Id: account.Id, Uuid: account.Uuid, UserName: account.UserName, Email: account.Email}
-				res.ResponseWriter(ctx)
+				res.ResponseWriter(ctx, http.StatusOK)
 			} else {
-				var res models.ProtocolRsp
+				var res models.ErrorRsp
 				res.Code = models.LoginErrCode
-				res.Msg = err.Error()
-				res.ResponseWriter(ctx)
+				res.Message = err.Error()
+				res.ResponseWriter(ctx, http.StatusBadRequest)
 			}
 
 		} else {
-			var res models.ProtocolRsp
+			var res models.ErrorRsp
 			res.Code = models.LoginErrCode
-			res.Msg = err.Error()
-			res.ResponseWriter(ctx)
+			res.Message = err.Error()
+			res.ResponseWriter(ctx, http.StatusBadRequest)
 		}
 	}
 }
@@ -156,10 +149,10 @@ func tokenHandler(ctx iris.Context) {
 	tokenString := ctx.GetHeader("token")
 	if tokenString == "" {
 		//ctx.StatusCode(http.StatusUnauthorized)
-		var res models.ProtocolRsp
+		var res models.ErrorRsp
 		res.Code = models.NotLoginCode
-		res.Msg = models.TokenErr
-		res.ResponseWriter(ctx)
+		res.Message = models.TokenErr
+		res.ResponseWriter(ctx, http.StatusBadRequest)
 
 		logrus.Error("Unauthorized access to this resource")
 		return
@@ -179,10 +172,10 @@ func tokenHandler(ctx iris.Context) {
 		ctx.Next()
 	} else {
 		//ctx.StatusCode(http.StatusUnauthorized)
-		var res models.ProtocolRsp
+		var res models.ErrorRsp
 		res.Code = models.TokenExpCode
-		res.Msg = models.TokenExpiredErr
-		res.ResponseWriter(ctx)
+		res.Message = models.TokenExpiredErr
+		res.ResponseWriter(ctx, http.StatusBadRequest)
 		logrus.Error("Token is invalid!!!")
 	}
 
@@ -213,9 +206,8 @@ func updateProfile(ctx iris.Context) {
 
 			if e == nil {
 				var res models.ProtocolRsp
-				res.Code = models.OK
-				res.Msg = models.SUCCESS
-				res.ResponseWriter(ctx)
+				res.Data = user
+				res.ResponseWriter(ctx, http.StatusOK)
 				return
 			}
 		}
@@ -235,10 +227,10 @@ func genOrder(ctx iris.Context) {
 
 	packageId, err := ctx.PostValueInt("packageId")
 	if err != nil {
-		var res models.ProtocolRsp
+		var res models.ErrorRsp
 		res.Code = models.ParamErrCode
-		res.Msg = models.PackageIdErr
-		res.ResponseWriter(ctx)
+		res.Message = models.PackageIdErr
+		res.ResponseWriter(ctx, http.StatusBadRequest)
 		return
 	}
 
@@ -254,10 +246,10 @@ func genOrder(ctx iris.Context) {
 
 	p, err := strconv.ParseFloat(price, 64)
 	if err != nil {
-		var res models.ProtocolRsp
+		var res models.ErrorRsp
 		res.Code = models.ParamErrCode
-		res.Msg = models.ParamErr
-		res.ResponseWriter(ctx)
+		res.Message = models.ParamErr
+		res.ResponseWriter(ctx, http.StatusBadRequest)
 		return
 	}
 
@@ -290,18 +282,16 @@ func genOrder(ctx iris.Context) {
 		order.Id = int(id)
 		if _, err = redis.SetStruct(orderId, order); err == nil {
 			var res models.ProtocolRsp
-			res.Code = models.OK
-			res.Msg = models.SUCCESS
 			res.Data = &mysql.OrderRsp{OrderId: orderId, Money: moneyStr}
-			res.ResponseWriter(ctx)
+			res.ResponseWriter(ctx, http.StatusOK)
 			return
 		}
 	}
 
-	var res models.ProtocolRsp
+	var res models.ErrorRsp
 	res.Code = models.OrderErrCode
-	res.Msg = models.GenOrderErr
-	res.ResponseWriter(ctx)
+	res.Message = models.GenOrderErr
+	res.ResponseWriter(ctx, http.StatusBadRequest)
 
 }
 
@@ -311,15 +301,13 @@ func payHistory(ctx iris.Context) {
 
 	if pays, err := mysql.QueryPayHistory(userId); err == nil {
 		var res models.ProtocolRsp
-		res.Code = models.OK
-		res.Msg = models.SUCCESS
 		res.Data = pays
-		res.ResponseWriter(ctx)
+		res.ResponseWriter(ctx, http.StatusOK)
 	} else {
-		var res models.ProtocolRsp
+		var res models.ErrorRsp
 		res.Code = models.PayHistoryErrCode
-		res.Msg = err.Error()
-		res.ResponseWriter(ctx)
+		res.Message = err.Error()
+		res.ResponseWriter(ctx, http.StatusBadRequest)
 	}
 
 }
@@ -328,71 +316,69 @@ func payHistory(ctx iris.Context) {
 func news(ctx iris.Context) {
 	if pays, err := mysql.News(); err == nil {
 		var res models.ProtocolRsp
-		res.Code = models.OK
-		res.Msg = models.SUCCESS
 		res.Data = pays
-		res.ResponseWriter(ctx)
+		res.ResponseWriter(ctx, http.StatusOK)
 	} else {
-		var res models.ProtocolRsp
+		var res models.ErrorRsp
 		res.Code = models.NewsErrCode
-		res.Msg = err.Error()
-		res.ResponseWriter(ctx)
+		res.Message = err.Error()
+		res.ResponseWriter(ctx, http.StatusBadRequest)
 	}
 }
 
 func checkRegisterFormat(ctx iris.Context, username, email, mobile, iso, password string) bool {
 	if username == "" {
-		var res models.ProtocolRsp
+		var res models.ErrorRsp
 		res.Code = models.RegisterErrCode
-		res.Msg = models.RegisterUserNameEmptyErr
-		res.ResponseWriter(ctx)
+		res.Message = models.RegisterUserNameEmptyErr
+		res.ResponseWriter(ctx, http.StatusBadRequest)
 		return false
 	} else if !utils.IsUserName(username) {
-		var res models.ProtocolRsp
+		var res models.ErrorRsp
 		res.Code = models.RegisterErrCode
-		res.Msg = models.RegisterUserNameFormatErr
-		res.ResponseWriter(ctx)
+		res.Message = models.RegisterUserNameFormatErr
+		res.ResponseWriter(ctx, http.StatusBadRequest)
 		return false
 	}
 	if email == "" {
-		var res models.ProtocolRsp
+		var res models.ErrorRsp
 		res.Code = models.RegisterErrCode
-		res.Msg = models.RegisterEmailEmptyErr
-		res.ResponseWriter(ctx)
+		res.Message = models.RegisterEmailEmptyErr
+		res.ResponseWriter(ctx, http.StatusBadRequest)
 		return false
 	} else if !utils.IsEmail(email) {
-		var res models.ProtocolRsp
+		var res models.ErrorRsp
 		res.Code = models.RegisterErrCode
-		res.Msg = models.RegisterEmailFormatErr
-		res.ResponseWriter(ctx)
+		res.Message = models.RegisterEmailFormatErr
+		res.ResponseWriter(ctx, http.StatusBadRequest)
 		return false
 	}
 
 	if mobile == "" || iso == "" {
-		var res models.ProtocolRsp
+		var res models.ErrorRsp
 		res.Code = models.RegisterErrCode
-		res.Msg = models.RegisterMobileEmptyErr
-		res.ResponseWriter(ctx)
+		res.Message = models.RegisterMobileEmptyErr
+		res.ResponseWriter(ctx, http.StatusBadRequest)
 		return false
 	} else if !utils.IsMobile(mobile, iso) {
-		var res models.ProtocolRsp
+		var res models.ErrorRsp
 		res.Code = models.RegisterErrCode
-		res.Msg = models.RegisterMobileFormatErr
-		res.ResponseWriter(ctx)
+		res.Message = models.RegisterMobileFormatErr
+		res.ResponseWriter(ctx, http.StatusBadRequest)
 		return false
 	}
 
 	if password == "" {
-		var res models.ProtocolRsp
+		var res models.ErrorRsp
 		res.Code = models.RegisterErrCode
-		res.Msg = models.RegisterPassWordEmptyErr
-		res.ResponseWriter(ctx)
+		res.Message = models.RegisterPassWordEmptyErr
+		res.ResponseWriter(ctx, http.StatusBadRequest)
 		return false
 	} else if !utils.IsPwd(password) {
-		var res models.ProtocolRsp
+		var res models.ErrorRsp
 		res.Code = models.RegisterErrCode
-		res.Msg = models.RegisterPassWordFormatErr
-		res.ResponseWriter(ctx)
+		res.Message = models.RegisterPassWordFormatErr
+		res.ResponseWriter(ctx, http.StatusBadRequest)
 		return false
 	}
 
@@ -401,30 +387,30 @@ func checkRegisterFormat(ctx iris.Context, username, email, mobile, iso, passwor
 
 func checkLoginFormat(ctx iris.Context, username, email, password string) bool {
 	if username == "" && email == "" {
-		var res models.ProtocolRsp
+		var res models.ErrorRsp
 		res.Code = models.LoginErrCode
-		res.Msg = models.LoginErrUserNameOrEmailEmptyErr
-		res.ResponseWriter(ctx)
+		res.Message = models.LoginErrUserNameOrEmailEmptyErr
+		res.ResponseWriter(ctx, http.StatusBadRequest)
 		return false
 	} else if username == "" && !utils.IsEmail(email) {
-		var res models.ProtocolRsp
+		var res models.ErrorRsp
 		res.Code = models.LoginErrCode
-		res.Msg = models.LoginEmailFormatErr
-		res.ResponseWriter(ctx)
+		res.Message = models.LoginEmailFormatErr
+		res.ResponseWriter(ctx, http.StatusBadRequest)
 		return false
 	} else if email == "" && !utils.IsUserName(username) {
-		var res models.ProtocolRsp
+		var res models.ErrorRsp
 		res.Code = models.LoginErrCode
-		res.Msg = models.LoginUserNameFormatErr
-		res.ResponseWriter(ctx)
+		res.Message = models.LoginUserNameFormatErr
+		res.ResponseWriter(ctx, http.StatusBadRequest)
 		return false
 	}
 
 	if password == "" {
-		var res models.ProtocolRsp
+		var res models.ErrorRsp
 		res.Code = models.LoginErrCode
-		res.Msg = models.LoginErrPassWordEmptyErr
-		res.ResponseWriter(ctx)
+		res.Message = models.LoginErrPassWordEmptyErr
+		res.ResponseWriter(ctx, http.StatusBadRequest)
 		return false
 	}
 

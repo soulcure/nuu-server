@@ -96,10 +96,10 @@ func PackageDetailToday(ctx iris.Context) {
 		}
 	}()
 
-	var res ProtocolRsp
+	var res ErrorRsp
 	res.Code = ReqPlatformErrCode
-	res.Msg = err.Error()
-	res.ResponseWriter(ctx)
+	res.Message = err.Error()
+	res.ResponseWriter(ctx, http.StatusBadRequest)
 
 }
 
@@ -137,10 +137,10 @@ func QueryPackageForSale(ctx iris.Context) {
 		}
 	}()
 
-	var res ProtocolRsp
+	var res ErrorRsp
 	res.Code = ReqPlatformErrCode
-	res.Msg = err.Error()
-	res.ResponseWriter(ctx)
+	res.Message = err.Error()
+	res.ResponseWriter(ctx, http.StatusBadRequest)
 
 }
 
@@ -197,10 +197,8 @@ func PayPalDone(ctx iris.Context, order *mysql.OrderReq) {
 					if err = mysql.UpdateOrderTX(order, pOrder); err == nil {
 						if _, err = redis.DelKey(order.OrderId); err == nil {
 							var res ProtocolRsp
-							res.Code = OK
-							res.Msg = SUCCESS
 							res.Data = buyResult
-							res.ResponseWriter(ctx)
+							res.ResponseWriter(ctx, http.StatusOK)
 							return
 						}
 					}
@@ -211,14 +209,14 @@ func PayPalDone(ctx iris.Context, order *mysql.OrderReq) {
 		}
 	}
 
-	var res ProtocolRsp
+	var res ErrorRsp
 	res.Code = ReqPlatformErrCode
 	if err != nil {
-		res.Msg = err.Error()
+		res.Message = err.Error()
 	} else {
-		res.Msg = PackagePlatformErr
+		res.Message = PackagePlatformErr
 	}
-	res.ResponseWriter(ctx)
+	res.ResponseWriter(ctx, http.StatusBadRequest)
 
 }
 
@@ -276,10 +274,10 @@ func PackageQuery(ctx iris.Context) {
 		}
 	}()
 
-	var res ProtocolRsp
+	var res ErrorRsp
 	res.Code = ReqPlatformErrCode
-	res.Msg = err.Error()
-	res.ResponseWriter(ctx)
+	res.Message = err.Error()
+	res.ResponseWriter(ctx, http.StatusBadRequest)
 
 }
 
@@ -313,10 +311,10 @@ func SettWifiPassword(ctx iris.Context) {
 		}
 	}()
 
-	var res ProtocolRsp
+	var res ErrorRsp
 	res.Code = ReqPlatformErrCode
-	res.Msg = err.Error()
-	res.ResponseWriter(ctx)
+	res.Message = err.Error()
+	res.ResponseWriter(ctx, http.StatusBadRequest)
 
 }
 
@@ -350,10 +348,10 @@ func UsedDetailPeriod(ctx iris.Context) {
 		}
 	}()
 
-	var res ProtocolRsp
+	var res ErrorRsp
 	res.Code = ReqPlatformErrCode
-	res.Msg = err.Error()
-	res.ResponseWriter(ctx)
+	res.Message = err.Error()
+	res.ResponseWriter(ctx, http.StatusBadRequest)
 
 }
 
@@ -362,38 +360,37 @@ func SendPasswordEmail(ctx iris.Context) {
 	email := ctx.FormValue("email")
 
 	if email == "" {
-		var res ProtocolRsp
+		var res ErrorRsp
 		res.Code = AccountErrCode
-		res.Msg = EmailEmptyErr
-		res.ResponseWriter(ctx)
+		res.Message = EmailEmptyErr
+		res.ResponseWriter(ctx, http.StatusBadRequest)
 		return
 	}
 
 	if !utils.IsEmail(email) {
-		var res ProtocolRsp
+		var res ErrorRsp
 		res.Code = AccountErrCode
-		res.Msg = EmailFormatErr
-		res.ResponseWriter(ctx)
+		res.Message = EmailFormatErr
+		res.ResponseWriter(ctx, http.StatusBadRequest)
 		return
 	}
 
 	if password, err := mysql.AccountByEmail(email); err == nil {
 		if err := cpython.SendEmail(account.Smtp, account.SendAccount, account.SendPassword, email, password); err == nil {
 			var res ProtocolRsp
-			res.Code = OK
-			res.Msg = SUCCESS
-			res.ResponseWriter(ctx)
+			res.Data = password
+			res.ResponseWriter(ctx, http.StatusBadRequest)
 		} else {
-			var res ProtocolRsp
+			var res ErrorRsp
 			res.Code = AccountErrCode
-			res.Msg = err.Error()
-			res.ResponseWriter(ctx)
+			res.Message = err.Error()
+			res.ResponseWriter(ctx, http.StatusBadRequest)
 		}
 
 	} else {
-		var res ProtocolRsp
+		var res ErrorRsp
 		res.Code = AccountErrCode
-		res.Msg = err.Error()
-		res.ResponseWriter(ctx)
+		res.Message = err.Error()
+		res.ResponseWriter(ctx, http.StatusBadRequest)
 	}
 }

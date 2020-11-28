@@ -61,12 +61,27 @@ const (
 )
 
 type ProtocolRsp struct {
-	Code int         `json:"code"`
-	Msg  string      `json:"msg"`
 	Data interface{} `json:"data,omitempty"`
 }
 
-func (json *ProtocolRsp) ResponseWriter(ctx iris.Context) {
+type ErrorRsp struct {
+	Code    int    `json:"code"`
+	Message string `json:"message"`
+}
+
+func (json *ProtocolRsp) ResponseWriter(ctx iris.Context, status int) {
+
+	ctx.StatusCode(status)
+
+	if _, err := ctx.JSON(json); err != nil {
+		logrus.Error(err)
+	}
+}
+
+func (json *ErrorRsp) ResponseWriter(ctx iris.Context, status int) {
+
+	ctx.StatusCode(status)
+
 	if _, err := ctx.JSON(json); err != nil {
 		logrus.Error(err)
 	}
