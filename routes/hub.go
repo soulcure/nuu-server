@@ -25,25 +25,44 @@ func Hub(app *iris.Application) {
 	app.OnErrorCode(iris.StatusNotFound, notFound)
 	app.OnErrorCode(iris.StatusInternalServerError, internalServerError)
 
-	// register our routes.
-	app.Get("/test", test)
-	app.Post("/register", registerHandler)
-	app.Post("/login", loginHandler)
+	////////////////////------api/v1------///////////
+	v1 := app.AllowMethods().Party("/api/v1")
+	v1.PartyFunc("/user", func(p iris.Party) {
+		// register our routes.
+		p.Get("/test", test)
+		p.Post("/register", registerHandler)
+		p.Post("/login", loginHandler)
+	})
+	v1.Get("/news", news)
 
-	app.Post("/api/detail", models.PackageDetailToday)
-	app.Post("/api/period", models.UsedDetailPeriod)
-	app.Post("/api/sale", models.QueryPackageForSale)
-	app.Post("/api/package", models.PackageQuery)
-	app.Post("/api/setting", models.SettWifiPassword)
-	app.Post("/api/forget/password", models.SendPasswordEmail)
-
-	app.Get("/api/news", news)
+	v1.Post("/detail", models.PackageDetailToday)
+	v1.Post("/period", models.UsedDetailPeriod)
+	v1.Post("/sale", models.QueryPackageForSale)
+	v1.Post("/package", models.PackageQuery)
+	v1.Post("/setting", models.SettWifiPassword)
+	v1.Post("/forget/password", models.SendPasswordEmail)
 
 	//need login
-	app.Post("/api/update", tokenHandler, updateProfile)
-	app.Post("/api/order", tokenHandler, genOrder)
-	app.Post("/api/pay", tokenHandler, models.OrderPay)
-	app.Post("/api/pay/history", tokenHandler, payHistory)
+	v1.Post("/update", tokenHandler, updateProfile)
+	v1.Post("/order", tokenHandler, genOrder)
+	v1.Post("/pay", tokenHandler, models.OrderPay)
+	v1.Post("/pay/history", tokenHandler, payHistory)
+
+	////////////////////------api/v2------///////////
+	v2 := app.AllowMethods().Party("/api/v2")
+	v2.Get("/news", func(ctx iris.Context) {
+		if pays, err := mysql.News(); err == nil {
+			var res models.ProtocolRsp
+			res.Data = pays
+			res.ResponseWriter(ctx, http.StatusOK)
+		} else {
+			var res models.ErrorRsp
+			res.Code = models.AccountErrCode
+			res.Message = err.Error()
+			res.ResponseWriter(ctx, http.StatusBadRequest)
+		}
+	})
+
 }
 
 func test(ctx iris.Context) {
