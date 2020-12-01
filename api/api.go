@@ -3,8 +3,8 @@ package api
 import (
 	"fmt"
 
-	"github.com/kataras/iris"
-	"github.com/swaggo/swag/example/basic/web"
+	"nuu-server/web"
+	"github.com/kataras/iris/v12"
 )
 
 //
