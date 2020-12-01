@@ -26,7 +26,7 @@ func Hub(app *iris.Application) {
 	app.OnErrorCode(iris.StatusInternalServerError, internalServerError)
 
 	////////////////////------api/v1------///////////
-	v1 := app.AllowMethods().Party("/api/v1")
+	v1 := app.AllowMethods().Party("/v1")
 	v1.PartyFunc("/user", func(p iris.Party) {
 		// register our routes.
 		p.Get("/test", test)
@@ -84,33 +84,19 @@ func internalServerError(ctx iris.Context) {
 	res.ResponseWriter(ctx, http.StatusInternalServerError)
 }
 
-// swagger:route GET /pets pets users listPets
-//
-// Lists pets filtered by some parameters.
-//
-// This will show all available pets by default.
-// You can get the pets that are out of stock
-//
-//     Consumes:
-//     - application/json
-//     - application/x-protobuf
-//
-//     Produces:
-//     - application/json
-//     - application/x-protobuf
-//
-//     Schemes: http, https, ws, wss
-//
-//     Deprecated: true
-//
-//     Security:
-//       api_key:
-//       oauth: read, write
-//
-//     Responses:
-//       default: genericError
-//       200: someResponse
-//       422: validationError
+// @Summary 用户注册接口
+// @Description 注册接口必须 username,email,mobile, iso, password
+// @Tags 用户信息   //swagger API分类标签, 同一个tag为一组
+// @accept mpfd
+// @Produce json
+// @Param username formData  string true "username"
+// @Param email formData  string true "email"
+// @Param mobile formData  string true "mobile"
+// @Param iso formData  string true "iso"
+// @Param password formData  string true "password"
+// @Success 200 {object} string  {"id":1,"uuid":"","username":"","email":"","password":"","expired":3600}  //成功返回的数据结构， 最后是示例
+// @Failure 400 {object} string  {"code":304,"message":""}
+// @Router /user/register [post]
 func registerHandler(ctx iris.Context) {
 	username := ctx.FormValue("username")
 	email := ctx.FormValue("email")
@@ -154,6 +140,17 @@ func registerHandler(ctx iris.Context) {
 
 }
 
+// @Summary 用户登录接口
+// @Description 登录接口必须username,password 或 email,password
+// @Tags 用户信息   //swagger API分类标签, 同一个tag为一组
+// @accept mpfd
+// @Produce  json
+// @Param username formData  string false "username"
+// @Param email formData  string false "email"
+// @Param password formData  string true "password"
+// @Success 200 {object} string  {"token":"","expired":3600,"id":1,"uuid":"","username":"","email":""}  //成功返回的数据结构， 最后是示例
+// @Failure 400 {object} string  {"code":303,"message":""}
+// @Router /user/login [post]
 func loginHandler(ctx iris.Context) {
 	username := ctx.FormValue("username")
 	email := ctx.FormValue("email")

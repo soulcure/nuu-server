@@ -1,4 +1,4 @@
-basePath: /v2
+basePath: /v1
 definitions:
   web.APIError:
     properties:
@@ -7,7 +7,7 @@ definitions:
       errorMessage:
         type: string
     type: object
-host: petstore.swagger.io
+host: localhost:8899
 info:
   contact:
     email: support@swagger.io
@@ -25,14 +25,23 @@ paths:
     get:
       consumes:
       - application/json
-      description: get string by ID
+      - application/json
+      description: |-
+        get string by ID
+        get string by ID
       parameters:
       - description: Some ID
         in: path
         name: some_id
         required: true
         type: integer
+      - description: Some ID
+        in: path
+        name: some_id
+        required: true
+        type: integer
       produces:
+      - application/json
       - application/json
       responses:
         "200":
@@ -84,4 +93,86 @@ paths:
           description: Can not find ID
           schema:
             $ref: '#/definitions/web.APIError'
+  /user/login:
+    post:
+      consumes:
+      - multipart/form-data
+      description: 登录接口必须username,password 或 email,password
+      parameters:
+      - description: username
+        in: formData
+        name: username
+        type: string
+      - description: email
+        in: formData
+        name: email
+        type: string
+      - description: password
+        in: formData
+        name: password
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: token":"","expired":3600,"id":1,"uuid":"","username":"","email":""}  //成功返回的数据结构，
+            最后是示例
+          schema:
+            type: string
+        "400":
+          description: code":303,"message":""}
+          schema:
+            type: string
+      summary: 用户登录接口
+      tags:
+      - 用户信息   //swagger API分类标签
+      - 同一个tag为一组
+  /user/register:
+    post:
+      consumes:
+      - multipart/form-data
+      description: 注册接口必须 username,email,mobile, iso, password
+      parameters:
+      - description: username
+        in: formData
+        name: username
+        required: true
+        type: string
+      - description: email
+        in: formData
+        name: email
+        required: true
+        type: string
+      - description: mobile
+        in: formData
+        name: mobile
+        required: true
+        type: string
+      - description: iso
+        in: formData
+        name: iso
+        required: true
+        type: string
+      - description: password
+        in: formData
+        name: password
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: id":1,"uuid":"","username":"","email":"","password":"","expired":3600}  //成功返回的数据结构，
+            最后是示例
+          schema:
+            type: string
+        "400":
+          description: code":304,"message":""}
+          schema:
+            type: string
+      summary: 用户注册接口
+      tags:
+      - 用户信息   //swagger API分类标签
+      - 同一个tag为一组
 swagger: "2.0"

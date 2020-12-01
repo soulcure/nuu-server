@@ -35,15 +35,24 @@ var doc = `{
     "paths": {
         "/testapi/get-string-by-int/{some_id}": {
             "get": {
-                "description": "get string by ID",
+                "description": "get string by ID\nget string by ID",
                 "consumes": [
+                    "application/json",
                     "application/json"
                 ],
                 "produces": [
+                    "application/json",
                     "application/json"
                 ],
                 "summary": "Add a new pet to the store",
                 "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Some ID",
+                        "name": "some_id",
+                        "in": "path",
+                        "required": true
+                    },
                     {
                         "type": "integer",
                         "description": "Some ID",
@@ -127,6 +136,124 @@ var doc = `{
                     }
                 }
             }
+        },
+        "/user/login": {
+            "post": {
+                "description": "登录接口必须username,password 或 email,password",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "用户信息   //swagger API分类标签",
+                    "同一个tag为一组"
+                ],
+                "summary": "用户登录接口",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "username",
+                        "name": "username",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "description": "email",
+                        "name": "email",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "description": "password",
+                        "name": "password",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "token\":\"\",\"expired\":3600,\"id\":1,\"uuid\":\"\",\"username\":\"\",\"email\":\"\"}  //成功返回的数据结构， 最后是示例",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "code\":303,\"message\":\"\"}",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/user/register": {
+            "post": {
+                "description": "注册接口必须 username,email,mobile, iso, password",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "用户信息   //swagger API分类标签",
+                    "同一个tag为一组"
+                ],
+                "summary": "用户注册接口",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "username",
+                        "name": "username",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "email",
+                        "name": "email",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "mobile",
+                        "name": "mobile",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "iso",
+                        "name": "iso",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "password",
+                        "name": "password",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "id\":1,\"uuid\":\"\",\"username\":\"\",\"email\":\"\",\"password\":\"\",\"expired\":3600}  //成功返回的数据结构， 最后是示例",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "code\":304,\"message\":\"\"}",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -156,8 +283,8 @@ type swaggerInfo struct {
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = swaggerInfo{
 	Version:     "1.0",
-	Host:        "petstore.swagger.io",
-	BasePath:    "/v2",
+	Host:        "localhost:8899",
+	BasePath:    "/v1",
 	Schemes:     []string{},
 	Title:       "Swagger Example API",
 	Description: "This is a sample server Petstore server.",
