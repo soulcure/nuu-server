@@ -144,19 +144,19 @@ var doc = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "username",
+                        "description": "用户名",
                         "name": "username",
                         "in": "formData"
                     },
                     {
                         "type": "string",
-                        "description": "email",
+                        "description": "邮箱",
                         "name": "email",
                         "in": "formData"
                     },
                     {
                         "type": "string",
-                        "description": "password",
+                        "description": "密码",
                         "name": "password",
                         "in": "formData",
                         "required": true
@@ -164,13 +164,13 @@ var doc = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "token\":\"\",\"expired\":3600,\"id\":1,\"uuid\":\"\",\"username\":\"\",\"email\":\"\"}  //成功返回的数据结构， 最后是示例",
+                        "description": "data\":{\"token\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2MDcwODMwNzQsImlkIjoxLCJ1dWlkIjoiMDQzNjQ4YzMtYjU1My00M2VmLWJlYWEtYmYyZTQzN2UwMzU1In0.xHtN5mKDyZ5hCX5dMh71X8Q3B3-s3l7XZ8absr9fias\",\"expired\": 1607083074,\"id\": 1,\"uuid\": \"043648c3-b553-43ef-beaa-bf2e437e0355\",\"username\": \"soulcure\",\"email\": \"+8618664923439\"}}",
                         "schema": {
                             "type": "string"
                         }
                     },
                     "400": {
-                        "description": "code\":303,\"message\":\"\"}",
+                        "description": "code\":303,\"message\":\"登录失败\"}",
                         "schema": {
                             "type": "string"
                         }
@@ -194,35 +194,35 @@ var doc = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "username",
+                        "description": "用户名",
                         "name": "username",
                         "in": "formData",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "email",
+                        "description": "邮箱",
                         "name": "email",
                         "in": "formData",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "mobile",
+                        "description": "手机号",
                         "name": "mobile",
                         "in": "formData",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "iso",
+                        "description": "国际地区编号",
                         "name": "iso",
                         "in": "formData",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "password",
+                        "description": "密码",
                         "name": "password",
                         "in": "formData",
                         "required": true
@@ -230,13 +230,13 @@ var doc = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "id\":1,\"uuid\":\"\",\"username\":\"\",\"email\":\"\",\"password\":\"\",\"expired\":3600}  //成功返回的数据结构， 最后是示例",
+                        "description": "data\": {\"token\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2MDcwODMwNzQsImlkIjoxLCJ1dWlkIjoiMDQzNjQ4YzMtYjU1My00M2VmLWJlYWEtYmYyZTQzN2UwMzU1In0.xHtN5mKDyZ5hCX5dMh71X8Q3B3-s3l7XZ8absr9fias\",\"expired\": 1607083074,\"id\": 1,\"uuid\": \"043648c3-b553-43ef-beaa-bf2e437e0355\",\"username\": \"soulcure\",\"email\": \"+8618664923439\"}}",
                         "schema": {
                             "type": "string"
                         }
                     },
                     "400": {
-                        "description": "code\":304,\"message\":\"\"}",
+                        "description": "code\":304,\"message\":\"注册失败\"}",
                         "schema": {
                             "type": "string"
                         }

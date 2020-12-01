@@ -90,13 +90,13 @@ func internalServerError(ctx iris.Context) {
 // @Tags 用户信息
 // @accept mpfd
 // @Produce json
-// @Param username formData  string true "username"
-// @Param email formData  string true "email"
-// @Param mobile formData  string true "mobile"
-// @Param iso formData  string true "iso"
-// @Param password formData  string true "password"
-// @Success 200 {object} string  {"id":1,"uuid":"","username":"","email":"","password":"","expired":3600}  //成功返回的数据结构， 最后是示例
-// @Failure 400 {object} string  {"code":304,"message":""}
+// @Param username formData  string true "用户名"
+// @Param email formData  string true "邮箱"
+// @Param mobile formData  string true "手机号"
+// @Param iso formData  string true "国际地区编号"
+// @Param password formData  string true "密码"
+// @Success 200 {string} string  {"data": {"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2MDcwODMwNzQsImlkIjoxLCJ1dWlkIjoiMDQzNjQ4YzMtYjU1My00M2VmLWJlYWEtYmYyZTQzN2UwMzU1In0.xHtN5mKDyZ5hCX5dMh71X8Q3B3-s3l7XZ8absr9fias","expired": 1607083074,"id": 1,"uuid": "043648c3-b553-43ef-beaa-bf2e437e0355","username": "soulcure","email": "+8618664923439"}}
+// @Failure 400 {string} string  {"code":304,"message":"注册失败"}
 // @Router /user/register [post]
 func registerHandler(ctx iris.Context) {
 	username := ctx.FormValue("username")
@@ -146,11 +146,11 @@ func registerHandler(ctx iris.Context) {
 // @Tags 用户信息
 // @accept mpfd
 // @Produce  json
-// @Param username formData  string false "username"
-// @Param email formData  string false "email"
-// @Param password formData  string true "password"
-// @Success 200 {object} string  {"token":"","expired":3600,"id":1,"uuid":"","username":"","email":""}  //成功返回的数据结构， 最后是示例
-// @Failure 400 {object} string  {"code":303,"message":""}
+// @Param username formData  string false "用户名"
+// @Param email formData  string false "邮箱"
+// @Param password formData  string true "密码"
+// @Success 200 {string} string  {"data":{"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2MDcwODMwNzQsImlkIjoxLCJ1dWlkIjoiMDQzNjQ4YzMtYjU1My00M2VmLWJlYWEtYmYyZTQzN2UwMzU1In0.xHtN5mKDyZ5hCX5dMh71X8Q3B3-s3l7XZ8absr9fias","expired": 1607083074,"id": 1,"uuid": "043648c3-b553-43ef-beaa-bf2e437e0355","username": "soulcure","email": "+8618664923439"}}
+// @Failure 400 {string} string  {"code":303,"message":"登录失败"}
 // @Router /user/login [post]
 func loginHandler(ctx iris.Context) {
 	username := ctx.FormValue("username")
@@ -170,7 +170,7 @@ func loginHandler(ctx iris.Context) {
 			if token, err := token.SignedString([]byte(SecretKey)); err == nil {
 				logrus.Debug(username, "  set Token:", token)
 				var res models.ProtocolRsp
-				res.Data = &models.LoginRsp{Token: token, Expired: exp, Id: account.Id, Uuid: account.Uuid, UserName: account.UserName, Email: account.Email}
+				res.Data = &models.LoginRsp{Token: token, Expired: exp, ID: account.Id, UUID: account.Uuid, UserName: account.UserName, Email: account.Email}
 				res.ResponseWriter(ctx, http.StatusOK)
 			} else {
 				var res models.ErrorRsp
