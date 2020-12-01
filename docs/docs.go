@@ -35,24 +35,15 @@ var doc = `{
     "paths": {
         "/testapi/get-string-by-int/{some_id}": {
             "get": {
-                "description": "get string by ID\nget string by ID",
+                "description": "get string by ID",
                 "consumes": [
-                    "application/json",
                     "application/json"
                 ],
                 "produces": [
-                    "application/json",
                     "application/json"
                 ],
                 "summary": "Add a new pet to the store",
                 "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Some ID",
-                        "name": "some_id",
-                        "in": "path",
-                        "required": true
-                    },
                     {
                         "type": "integer",
                         "description": "Some ID",
@@ -147,8 +138,7 @@ var doc = `{
                     "application/json"
                 ],
                 "tags": [
-                    "用户信息   //swagger API分类标签",
-                    "同一个tag为一组"
+                    "用户信息"
                 ],
                 "summary": "用户登录接口",
                 "parameters": [
@@ -198,8 +188,7 @@ var doc = `{
                     "application/json"
                 ],
                 "tags": [
-                    "用户信息   //swagger API分类标签",
-                    "同一个tag为一组"
+                    "用户信息"
                 ],
                 "summary": "用户注册接口",
                 "parameters": [

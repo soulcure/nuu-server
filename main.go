@@ -50,7 +50,7 @@ func main() {
 	// the rest of the code stays the same.
 	app := iris.New()
 
-	url := swagger.URL("http://localhost:8899/swagger/doc.json") //The url pointing to API definition
+	url := swagger.URL(":8899/swagger/doc.json") //The url pointing to API definition
 	app.Get("/swagger/{any:path}", swagger.WrapHandler(swaggerFiles.Handler, url))
 
 	routes.Hub(app)

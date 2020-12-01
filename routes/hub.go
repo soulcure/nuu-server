@@ -26,7 +26,7 @@ func Hub(app *iris.Application) {
 	app.OnErrorCode(iris.StatusInternalServerError, internalServerError)
 
 	////////////////////------api/v1------///////////
-	v1 := app.AllowMethods().Party("/v1")
+	v1 := app.Party("/v1").AllowMethods()
 	v1.PartyFunc("/user", func(p iris.Party) {
 		// register our routes.
 		p.Get("/test", test)
@@ -86,7 +86,7 @@ func internalServerError(ctx iris.Context) {
 
 // @Summary 用户注册接口
 // @Description 注册接口必须 username,email,mobile, iso, password
-// @Tags 用户信息   //swagger API分类标签, 同一个tag为一组
+// @Tags 用户信息
 // @accept mpfd
 // @Produce json
 // @Param username formData  string true "username"
@@ -142,7 +142,7 @@ func registerHandler(ctx iris.Context) {
 
 // @Summary 用户登录接口
 // @Description 登录接口必须username,password 或 email,password
-// @Tags 用户信息   //swagger API分类标签, 同一个tag为一组
+// @Tags 用户信息
 // @accept mpfd
 // @Produce  json
 // @Param username formData  string false "username"

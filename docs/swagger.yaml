@@ -25,23 +25,14 @@ paths:
     get:
       consumes:
       - application/json
-      - application/json
-      description: |-
-        get string by ID
-        get string by ID
+      description: get string by ID
       parameters:
       - description: Some ID
         in: path
         name: some_id
         required: true
         type: integer
-      - description: Some ID
-        in: path
-        name: some_id
-        required: true
-        type: integer
       produces:
-      - application/json
       - application/json
       responses:
         "200":
@@ -126,8 +117,7 @@ paths:
             type: string
       summary: 用户登录接口
       tags:
-      - 用户信息   //swagger API分类标签
-      - 同一个tag为一组
+      - 用户信息
   /user/register:
     post:
       consumes:
@@ -173,6 +163,5 @@ paths:
             type: string
       summary: 用户注册接口
       tags:
-      - 用户信息   //swagger API分类标签
-      - 同一个tag为一组
+      - 用户信息
 swagger: "2.0"
