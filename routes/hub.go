@@ -17,15 +17,16 @@ import (
 )
 
 const (
+	// SecretKey JWT secret key
 	SecretKey = "nuu-server"
 )
 
-// ServeAPI serves the API for this record store
+// Hub 路由设置
 func Hub(app *iris.Application) {
 	app.OnErrorCode(iris.StatusNotFound, notFound)
 	app.OnErrorCode(iris.StatusInternalServerError, internalServerError)
 
-	////////////////////------api/v1------///////////
+	////////////////////------v1------///////////
 	v1 := app.Party("/v1").AllowMethods()
 	v1.PartyFunc("/user", func(p iris.Party) {
 		// register our routes.
@@ -48,8 +49,8 @@ func Hub(app *iris.Application) {
 	v1.Post("/pay", tokenHandler, models.OrderPay)
 	v1.Post("/pay/history", tokenHandler, payHistory)
 
-	////////////////////------api/v2------///////////
-	v2 := app.AllowMethods().Party("/api/v2")
+	////////////////////------v2------///////////
+	v2 := app.Party("/v2").AllowMethods()
 	v2.Get("/news", func(ctx iris.Context) {
 		if pays, err := mysql.News(); err == nil {
 			var res models.ProtocolRsp
@@ -105,22 +106,22 @@ func registerHandler(ctx iris.Context) {
 	password := ctx.FormValue("password")
 
 	if checkRegisterFormat(ctx, username, email, mobile, iso, password) {
-		userUuid := uuid.NewV4().String()
-		logrus.Debug("user register uuid:", userUuid)
-		if id, err := mysql.RegisterInsert(userUuid, username, email, mobile, iso, password); err == nil {
+		userUUID := uuid.NewV4().String()
+		logrus.Debug("user register uuid:", userUUID)
+		if id, err := mysql.RegisterInsert(userUUID, username, email, mobile, iso, password); err == nil {
 			logrus.Debug("user register success")
-			userId := int(id)
+			userID := int(id)
 			exp := time.Now().Add(time.Hour * 72).Unix()
 			token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-				"id":   userId,
-				"uuid": userUuid,
+				"id":   userID,
+				"uuid": userUUID,
 				"exp":  exp,
 			})
 			if token, err := token.SignedString([]byte(SecretKey)); err == nil {
 				logrus.Debug(username, "  set Token:", token)
 				var res models.ProtocolRsp
 
-				res.Data = &models.RegisterRsp{Id: userId, Uuid: userUuid, UserName: username, Email: email, PassWord: password, Token: token, Expired: exp}
+				res.Data = &models.RegisterRsp{Id: userID, Uuid: userUUID, UserName: username, Email: email, PassWord: password, Token: token, Expired: exp}
 				res.ResponseWriter(ctx, http.StatusOK)
 			} else {
 				var res models.ErrorRsp
@@ -224,7 +225,7 @@ func tokenHandler(ctx iris.Context) {
 }
 
 func updateProfile(ctx iris.Context) {
-	userId := ctx.FormValue("userId")
+	userID := ctx.FormValue("userId")
 	email := ctx.FormValue("email")
 	genderStr := ctx.FormValue("gender")
 	gender, err := strconv.Atoi(genderStr)
@@ -233,18 +234,18 @@ func updateProfile(ctx iris.Context) {
 		logrus.Error(err)
 	}
 
-	if userId != "" && email != "" {
-		if err := mysql.Update(userId, gender, email); err == nil {
+	if userID != "" && email != "" {
+		if err := mysql.Update(userID, gender, email); err == nil {
 			logrus.Debug("user update profile success")
 			var e error
 
 			user := &mysql.Account{}
-			e = redis.GetStruct(userId, user)
+			e = redis.GetStruct(userID, user)
 
 			logrus.Debug("user profile:", user)
 
 			user.Email = email
-			_, e = redis.SetStruct(userId, user)
+			_, e = redis.SetStruct(userID, user)
 
 			if e == nil {
 				var res models.ProtocolRsp
@@ -258,7 +259,7 @@ func updateProfile(ctx iris.Context) {
 }
 
 func genOrder(ctx iris.Context) {
-	orderId := redis.GetOrderNum()
+	orderID := redis.GetOrderNum()
 	orderTime := time.Now().Format("20060102150405")
 
 	deviceSn := ctx.FormValue("deviceSn")
@@ -267,7 +268,7 @@ func genOrder(ctx iris.Context) {
 	beginDate := ctx.FormValue("beginDate")
 	packageName := ctx.FormValue("packageName")
 
-	packageId, err := ctx.PostValueInt("packageId")
+	packageID, err := ctx.PostValueInt("packageId")
 	if err != nil {
 		var res models.ErrorRsp
 		res.Code = models.ParamErrCode
@@ -301,11 +302,11 @@ func genOrder(ctx iris.Context) {
 	order := mysql.OrderReq{
 		UserId:      int(ctx.Values().Get("id").(float64)),
 		Uuid:        ctx.Values().Get("uuid").(string),
-		OrderId:     orderId,
+		OrderId:     orderID,
 		Price:       price,
 		Currency:    currency,
 		DeviceSn:    deviceSn,
-		PackageId:   packageId,
+		PackageId:   packageID,
 		PackageName: packageName,
 		OrderTime:   orderTime,
 		BeginDate:   beginDate,
@@ -322,9 +323,9 @@ func genOrder(ctx iris.Context) {
 
 	if id, err := order.InsertOrder(); err == nil {
 		order.Id = int(id)
-		if _, err = redis.SetStruct(orderId, order); err == nil {
+		if _, err = redis.SetStruct(orderID, order); err == nil {
 			var res models.ProtocolRsp
-			res.Data = &mysql.OrderRsp{OrderId: orderId, Money: moneyStr}
+			res.Data = &mysql.OrderRsp{OrderId: orderID, Money: moneyStr}
 			res.ResponseWriter(ctx, http.StatusOK)
 			return
 		}
@@ -339,9 +340,9 @@ func genOrder(ctx iris.Context) {
 
 //查询所有支付的订单
 func payHistory(ctx iris.Context) {
-	userId := int(ctx.Values().Get("id").(float64))
+	userID := int(ctx.Values().Get("id").(float64))
 
-	if pays, err := mysql.QueryPayHistory(userId); err == nil {
+	if pays, err := mysql.QueryPayHistory(userID); err == nil {
 		var res models.ProtocolRsp
 		res.Data = pays
 		res.ResponseWriter(ctx, http.StatusOK)
