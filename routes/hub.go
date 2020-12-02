@@ -27,42 +27,34 @@ func Hub(app *iris.Application) {
 	app.OnErrorCode(iris.StatusInternalServerError, internalServerError)
 
 	////////////////////------v1------///////////
-	v1 := app.Party("/v1").AllowMethods()
-	v1.PartyFunc("/user", func(p iris.Party) {
-		// register our routes.
-		p.Get("/test", test)
-		p.Post("/register", registerHandler)
-		p.Post("/login", loginHandler)
-	})
-	v1.Get("/news", news)
+	v1 := app.Party("/v1")
+	{
+		v1.PartyFunc("/user", func(p iris.Party) {
+			// register our routes.
+			p.Get("/test", test)
+			p.Post("/register", registerHandler)
+			p.Post("/login", loginHandler)
+		})
+		v1.Get("/news", news)
 
-	v1.Post("/detail", models.PackageDetailToday)
-	v1.Post("/period", models.UsedDetailPeriod)
-	v1.Post("/sale", models.QueryPackageForSale)
-	v1.Post("/package", models.PackageQuery)
-	v1.Post("/setting", models.SettWifiPassword)
-	v1.Post("/forget/password", models.SendPasswordEmail)
+		v1.Post("/detail", models.PackageDetailToday)
+		v1.Post("/period", models.UsedDetailPeriod)
+		v1.Post("/sale", models.QueryPackageForSale)
+		v1.Post("/package", models.PackageQuery)
+		v1.Post("/setting", models.SettWifiPassword)
+		v1.Post("/forget/password", models.SendPasswordEmail)
 
-	//need login
-	v1.Post("/update", tokenHandler, updateProfile)
-	v1.Post("/order", tokenHandler, genOrder)
-	v1.Post("/pay", tokenHandler, models.OrderPay)
-	v1.Post("/pay/history", tokenHandler, payHistory)
-
+		//need login
+		v1.Post("/update", tokenHandler, updateProfile)
+		v1.Post("/order", tokenHandler, genOrder)
+		v1.Post("/pay", tokenHandler, models.OrderPay)
+		v1.Post("/pay/history", tokenHandler, payHistory)
+	}
 	////////////////////------v2------///////////
-	v2 := app.Party("/v2").AllowMethods()
-	v2.Get("/news", func(ctx iris.Context) {
-		if pays, err := mysql.News(); err == nil {
-			var res models.ProtocolRsp
-			res.Data = pays
-			res.ResponseWriter(ctx, http.StatusOK)
-		} else {
-			var res models.ErrorRsp
-			res.Code = models.AccountErrCode
-			res.Message = err.Error()
-			res.ResponseWriter(ctx, http.StatusBadRequest)
-		}
-	})
+	v2 := app.Party("/v2")
+	{
+		v2.Get("/news", news)
+	}
 
 }
 
