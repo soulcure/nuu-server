@@ -149,8 +149,10 @@ func registerHandler(ctx iris.Context) {
 // @Param username formData  string false "用户名"
 // @Param email formData  string false "邮箱"
 // @Param password formData  string true "密码"
-// @Success 200 {string} json {"data":{"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2MDcwODMwNzQsImlkIjoxLCJ1dWlkIjoiMDQzNjQ4YzMtYjU1My00M2VmLWJlYWEtYmYyZTQzN2UwMzU1In0.xHtN5mKDyZ5hCX5dMh71X8Q3B3-s3l7XZ8absr9fias","expired": 1607083074,"id": 1,"uuid": "043648c3-b553-43ef-beaa-bf2e437e0355","username": "soulcure","email": "+8618664923439"}}
-// @Failure 400 {string} json {"code":303,"message":"登录失败"}
+// @Success 200 {object} models.LoginRsp
+// @Failure 400 {object} models.ErrorRsp
+// @Failure 401 {object} models.ErrorRsp
+// @Failure default {object} models.ErrorRsp
 // @Router /user/login [post]
 func loginHandler(ctx iris.Context) {
 	username := ctx.FormValue("username")

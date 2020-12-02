@@ -164,15 +164,15 @@ var doc = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "data\":{\"token\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2MDcwODMwNzQsImlkIjoxLCJ1dWlkIjoiMDQzNjQ4YzMtYjU1My00M2VmLWJlYWEtYmYyZTQzN2UwMzU1In0.xHtN5mKDyZ5hCX5dMh71X8Q3B3-s3l7XZ8absr9fias\",\"expired\": 1607083074,\"id\": 1,\"uuid\": \"043648c3-b553-43ef-beaa-bf2e437e0355\",\"username\": \"soulcure\",\"email\": \"+8618664923439\"}}",
+                        "description": "OK",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/models.LoginRsp"
                         }
                     },
                     "400": {
-                        "description": "code\":303,\"message\":\"登录失败\"}",
+                        "description": "Bad Request",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/models.ErrorRsp"
                         }
                     }
                 }
@@ -230,7 +230,7 @@ var doc = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "data\": {\"token\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2MDcwODMwNzQsImlkIjoxLCJ1dWlkIjoiMDQzNjQ4YzMtYjU1My00M2VmLWJlYWEtYmYyZTQzN2UwMzU1In0.xHtN5mKDyZ5hCX5dMh71X8Q3B3-s3l7XZ8absr9fias\",\"expired\": 1607083074,\"id\": 1,\"uuid\": \"043648c3-b553-43ef-beaa-bf2e437e0355\",\"username\": \"soulcure\",\"email\": \"+8618664923439\"}}",
+                        "description": "token\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2MDcwODMwNzQsImlkIjoxLCJ1dWlkIjoiMDQzNjQ4YzMtYjU1My00M2VmLWJlYWEtYmYyZTQzN2UwMzU1In0.xHtN5mKDyZ5hCX5dMh71X8Q3B3-s3l7XZ8absr9fias\",\"expired\": 1607083074,\"id\": 1,\"uuid\": \"043648c3-b553-43ef-beaa-bf2e437e0355\",\"username\": \"soulcure\",\"email\": \"+8618664923439\"}",
                         "schema": {
                             "type": "string"
                         }
@@ -246,6 +246,46 @@ var doc = `{
         }
     },
     "definitions": {
+        "models.ErrorRsp": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer"
+                },
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.LoginRsp": {
+            "type": "object",
+            "properties": {
+                "email": {
+                    "description": "discriminator: true\nswagger:name email",
+                    "type": "string"
+                },
+                "expired": {
+                    "description": "discriminator: true\nswagger:name expired",
+                    "type": "integer"
+                },
+                "id": {
+                    "description": "discriminator: true\nswagger:name id",
+                    "type": "integer"
+                },
+                "token": {
+                    "description": "discriminator: true\nswagger:name token",
+                    "type": "string"
+                },
+                "username": {
+                    "description": "discriminator: true\nswagger:name username",
+                    "type": "string"
+                },
+                "uuid": {
+                    "description": "discriminator: true\nswagger:name uuid",
+                    "type": "string"
+                }
+            }
+        },
         "web.APIError": {
             "type": "object",
             "properties": {

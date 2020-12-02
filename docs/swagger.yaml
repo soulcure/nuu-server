@@ -1,5 +1,45 @@
 basePath: /v1
 definitions:
+  models.ErrorRsp:
+    properties:
+      code:
+        type: integer
+      message:
+        type: string
+    type: object
+  models.LoginRsp:
+    properties:
+      email:
+        description: |-
+          discriminator: true
+          swagger:name email
+        type: string
+      expired:
+        description: |-
+          discriminator: true
+          swagger:name expired
+        type: integer
+      id:
+        description: |-
+          discriminator: true
+          swagger:name id
+        type: integer
+      token:
+        description: |-
+          discriminator: true
+          swagger:name token
+        type: string
+      username:
+        description: |-
+          discriminator: true
+          swagger:name username
+        type: string
+      uuid:
+        description: |-
+          discriminator: true
+          swagger:name uuid
+        type: string
+    type: object
   web.APIError:
     properties:
       errorCode:
@@ -107,15 +147,13 @@ paths:
       - application/json
       responses:
         "200":
-          description: 'data":{"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2MDcwODMwNzQsImlkIjoxLCJ1dWlkIjoiMDQzNjQ4YzMtYjU1My00M2VmLWJlYWEtYmYyZTQzN2UwMzU1In0.xHtN5mKDyZ5hCX5dMh71X8Q3B3-s3l7XZ8absr9fias","expired":
-            1607083074,"id": 1,"uuid": "043648c3-b553-43ef-beaa-bf2e437e0355","username":
-            "soulcure","email": "+8618664923439"}}'
+          description: OK
           schema:
-            type: string
+            $ref: '#/definitions/models.LoginRsp'
         "400":
-          description: code":303,"message":"登录失败"}
+          description: Bad Request
           schema:
-            type: string
+            $ref: '#/definitions/models.ErrorRsp'
       summary: 用户登录接口
       tags:
       - 用户信息
@@ -154,9 +192,9 @@ paths:
       - application/json
       responses:
         "200":
-          description: 'data": {"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2MDcwODMwNzQsImlkIjoxLCJ1dWlkIjoiMDQzNjQ4YzMtYjU1My00M2VmLWJlYWEtYmYyZTQzN2UwMzU1In0.xHtN5mKDyZ5hCX5dMh71X8Q3B3-s3l7XZ8absr9fias","expired":
+          description: 'token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2MDcwODMwNzQsImlkIjoxLCJ1dWlkIjoiMDQzNjQ4YzMtYjU1My00M2VmLWJlYWEtYmYyZTQzN2UwMzU1In0.xHtN5mKDyZ5hCX5dMh71X8Q3B3-s3l7XZ8absr9fias","expired":
             1607083074,"id": 1,"uuid": "043648c3-b553-43ef-beaa-bf2e437e0355","username":
-            "soulcure","email": "+8618664923439"}}'
+            "soulcure","email": "+8618664923439"}'
           schema:
             type: string
         "400":
