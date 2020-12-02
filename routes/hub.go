@@ -90,13 +90,13 @@ func internalServerError(ctx iris.Context) {
 // @Tags 用户信息
 // @accept mpfd
 // @Produce json
-// @Param username formData  string true "用户名"
-// @Param email formData  string true "邮箱"
-// @Param mobile formData  string true "手机号"
-// @Param iso formData  string true "国际地区编号"
-// @Param password formData  string true "密码"
-// @Success 200 {string} string  {"data": {"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2MDcwODMwNzQsImlkIjoxLCJ1dWlkIjoiMDQzNjQ4YzMtYjU1My00M2VmLWJlYWEtYmYyZTQzN2UwMzU1In0.xHtN5mKDyZ5hCX5dMh71X8Q3B3-s3l7XZ8absr9fias","expired": 1607083074,"id": 1,"uuid": "043648c3-b553-43ef-beaa-bf2e437e0355","username": "soulcure","email": "+8618664923439"}}
-// @Failure 400 {string} string  {"code":304,"message":"注册失败"}
+// @Param username formData string true "用户名"
+// @Param email formData string true "邮箱"
+// @Param mobile formData string true "手机号"
+// @Param iso formData string true "国际地区编号"
+// @Param password formData string true "密码"
+// @Success 200 {string} json {"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2MDcwODMwNzQsImlkIjoxLCJ1dWlkIjoiMDQzNjQ4YzMtYjU1My00M2VmLWJlYWEtYmYyZTQzN2UwMzU1In0.xHtN5mKDyZ5hCX5dMh71X8Q3B3-s3l7XZ8absr9fias","expired": 1607083074,"id": 1,"uuid": "043648c3-b553-43ef-beaa-bf2e437e0355","username": "soulcure","email": "+8618664923439"}
+// @Failure 400 {string} json {"code":304,"message":"注册失败"}
 // @Router /user/register [post]
 func registerHandler(ctx iris.Context) {
 	username := ctx.FormValue("username")
@@ -149,8 +149,8 @@ func registerHandler(ctx iris.Context) {
 // @Param username formData  string false "用户名"
 // @Param email formData  string false "邮箱"
 // @Param password formData  string true "密码"
-// @Success 200 {string} string  {"data":{"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2MDcwODMwNzQsImlkIjoxLCJ1dWlkIjoiMDQzNjQ4YzMtYjU1My00M2VmLWJlYWEtYmYyZTQzN2UwMzU1In0.xHtN5mKDyZ5hCX5dMh71X8Q3B3-s3l7XZ8absr9fias","expired": 1607083074,"id": 1,"uuid": "043648c3-b553-43ef-beaa-bf2e437e0355","username": "soulcure","email": "+8618664923439"}}
-// @Failure 400 {string} string  {"code":303,"message":"登录失败"}
+// @Success 200 {string} json {"data":{"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2MDcwODMwNzQsImlkIjoxLCJ1dWlkIjoiMDQzNjQ4YzMtYjU1My00M2VmLWJlYWEtYmYyZTQzN2UwMzU1In0.xHtN5mKDyZ5hCX5dMh71X8Q3B3-s3l7XZ8absr9fias","expired": 1607083074,"id": 1,"uuid": "043648c3-b553-43ef-beaa-bf2e437e0355","username": "soulcure","email": "+8618664923439"}}
+// @Failure 400 {string} json {"code":303,"message":"登录失败"}
 // @Router /user/login [post]
 func loginHandler(ctx iris.Context) {
 	username := ctx.FormValue("username")

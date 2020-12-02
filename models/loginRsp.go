@@ -1,6 +1,7 @@
 package models
 
-// LoginRsp swagger:model
+// LoginRsp 登录结果结构体
+// swagger:model LoginRsp
 type LoginRsp struct {
 	// discriminator: true
 	// swagger:name token
