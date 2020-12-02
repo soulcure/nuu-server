@@ -10,34 +10,16 @@ definitions:
   models.LoginRsp:
     properties:
       email:
-        description: |-
-          discriminator: true
-          swagger:name email
         type: string
       expired:
-        description: |-
-          discriminator: true
-          swagger:name expired
         type: integer
       id:
-        description: |-
-          discriminator: true
-          swagger:name id
         type: integer
       token:
-        description: |-
-          discriminator: true
-          swagger:name token
         type: string
       username:
-        description: |-
-          discriminator: true
-          swagger:name username
         type: string
       uuid:
-        description: |-
-          discriminator: true
-          swagger:name uuid
         type: string
     type: object
   web.APIError:
@@ -152,6 +134,10 @@ paths:
             $ref: '#/definitions/models.LoginRsp'
         "400":
           description: Bad Request
+          schema:
+            $ref: '#/definitions/models.ErrorRsp'
+        "401":
+          description: Unauthorized
           schema:
             $ref: '#/definitions/models.ErrorRsp'
       summary: 用户登录接口

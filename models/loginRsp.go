@@ -1,29 +1,11 @@
 package models
 
 // LoginRsp 登录结果结构体
-// swagger:model LoginRsp
 type LoginRsp struct {
-	// discriminator: true
-	// swagger:name token
-	Token string `json:"token"`
-
-	// discriminator: true
-	// swagger:name expired
-	Expired int64 `json:"expired"`
-
-	// discriminator: true
-	// swagger:name id
-	ID int `json:"id"`
-
-	// discriminator: true
-	// swagger:name uuid
-	UUID string `json:"uuid"`
-
-	// discriminator: true
-	// swagger:name username
+	Token    string `json:"token"`
+	Expired  int64  `json:"expired"`
+	ID       int    `json:"id"`
+	UUID     string `json:"uuid"`
 	UserName string `json:"username"`
-
-	// discriminator: true
-	// swagger:name email
-	Email string `json:"email"`
+	Email    string `json:"email"`
 }

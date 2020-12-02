@@ -174,6 +174,12 @@ var doc = `{
                         "schema": {
                             "$ref": "#/definitions/models.ErrorRsp"
                         }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorRsp"
+                        }
                     }
                 }
             }
@@ -261,27 +267,21 @@ var doc = `{
             "type": "object",
             "properties": {
                 "email": {
-                    "description": "discriminator: true\nswagger:name email",
                     "type": "string"
                 },
                 "expired": {
-                    "description": "discriminator: true\nswagger:name expired",
                     "type": "integer"
                 },
                 "id": {
-                    "description": "discriminator: true\nswagger:name id",
                     "type": "integer"
                 },
                 "token": {
-                    "description": "discriminator: true\nswagger:name token",
                     "type": "string"
                 },
                 "username": {
-                    "description": "discriminator: true\nswagger:name username",
                     "type": "string"
                 },
                 "uuid": {
-                    "description": "discriminator: true\nswagger:name uuid",
                     "type": "string"
                 }
             }

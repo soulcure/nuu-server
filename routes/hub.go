@@ -152,7 +152,6 @@ func registerHandler(ctx iris.Context) {
 // @Success 200 {object} models.LoginRsp
 // @Failure 400 {object} models.ErrorRsp
 // @Failure 401 {object} models.ErrorRsp
-// @Failure default {object} models.ErrorRsp
 // @Router /user/login [post]
 func loginHandler(ctx iris.Context) {
 	username := ctx.FormValue("username")
