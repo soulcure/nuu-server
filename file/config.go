@@ -5,6 +5,7 @@ import (
 	"time"
 )
 
+//NewLogFile 创建日志文件
 func NewLogFile() *os.File {
 	filename := todayFilename()
 	// Open the file, this will append to the today's file if server restarted.
@@ -16,7 +17,7 @@ func NewLogFile() *os.File {
 	return f
 }
 
-// Get a filename based on the date, just for the sugar.
+//todayFilename Get a filename based on the date, just for the sugar.
 func todayFilename() string {
 	today := time.Now().Format("2006-01-02")
 	return today + ".txt"

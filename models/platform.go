@@ -20,8 +20,9 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
+//PlatformAccount 平台账号
 type PlatformAccount struct {
-	Url         string `yaml:"url"`
+	URL         string `yaml:"url"`
 	TransSerial string `yaml:"trans_serial"`
 	Login       string `yaml:"login"`
 	AuthCode    string `yaml:"auth_code"`
@@ -39,7 +40,7 @@ type PlatformAccount struct {
 	SetupWifi       string `yaml:"setup_wifi"`        //设置wifi 名称和密码
 	UsedDetail      string `yaml:"used_detail"`       //查询使用详情
 
-	Smtp         string `yaml:"smtp"`          //邮箱地址 类型
+	SMTP         string `yaml:"smtp"`          //邮箱地址 类型
 	SendAccount  string `yaml:"send_account"`  //发件人账号
 	SendPassword string `yaml:"send_password"` //发件人密码
 }
@@ -80,7 +81,7 @@ func PackageDetailToday(ctx iris.Context) {
 	data["auth_code"] = []string{account.AuthCode}
 	data["device_sn"] = []string{deviceSn}
 
-	rsp, err := http.PostForm(account.Url, data)
+	rsp, err := http.PostForm(account.URL, data)
 	if err == nil {
 		if body, err := ioutil.ReadAll(rsp.Body); err == nil {
 			if _, err := ctx.Write(body); err != nil {
@@ -119,7 +120,7 @@ func QueryPackageForSale(ctx iris.Context) {
 	data["auth_code"] = []string{account.AuthCode}
 	data["device_sn"] = []string{deviceSn}
 
-	rsp, err := http.PostForm(account.Url, data)
+	rsp, err := http.PostForm(account.URL, data)
 	if err == nil {
 		if body, err := ioutil.ReadAll(rsp.Body); err == nil {
 			//if _, err := redis.SetBytes(deviceSn, body); err == nil {
@@ -169,7 +170,7 @@ func PayPalDone(ctx iris.Context, order *mysql.OrderReq) {
 		}
 	}()
 
-	if resp, err = http.PostForm(account.Url, data); err == nil {
+	if resp, err = http.PostForm(account.URL, data); err == nil {
 		if body, err = ioutil.ReadAll(resp.Body); err == nil {
 			logrus.Debug("platform buy_package resp body :", string(body))
 
@@ -258,7 +259,7 @@ func PackageQuery(ctx iris.Context) {
 	data["auth_code"] = []string{account.AuthCode}
 	data["device_sn"] = []string{deviceSn}
 
-	rsp, err := http.PostForm(account.Url, data)
+	rsp, err := http.PostForm(account.URL, data)
 	if err == nil {
 		if body, err := ioutil.ReadAll(rsp.Body); err == nil {
 			if _, err := ctx.Write(body); err != nil {
@@ -295,7 +296,7 @@ func SettWifiPassword(ctx iris.Context) {
 	data["ssid"] = []string{name}
 	data["wifi_password"] = []string{password}
 
-	rsp, err := http.PostForm(account.Url, data)
+	rsp, err := http.PostForm(account.URL, data)
 	if err == nil {
 		if body, err := ioutil.ReadAll(rsp.Body); err == nil {
 			if _, err := ctx.Write(body); err != nil {
@@ -332,7 +333,7 @@ func UsedDetailPeriod(ctx iris.Context) {
 	data["begin_date"] = []string{beginDate}
 	data["end_date"] = []string{endDate}
 
-	rsp, err := http.PostForm(account.Url, data)
+	rsp, err := http.PostForm(account.URL, data)
 	if err == nil {
 		if body, err := ioutil.ReadAll(rsp.Body); err == nil {
 			if _, err := ctx.Write(body); err != nil {
@@ -376,7 +377,7 @@ func SendPasswordEmail(ctx iris.Context) {
 	}
 
 	if password, err := mysql.AccountByEmail(email); err == nil {
-		if err := cpython.SendEmail(account.Smtp, account.SendAccount, account.SendPassword, email, password); err == nil {
+		if err := cpython.SendEmail(account.SMTP, account.SendAccount, account.SendPassword, email, password); err == nil {
 			var res ProtocolRsp
 			res.Data = password
 			res.ResponseWriter(ctx, http.StatusBadRequest)

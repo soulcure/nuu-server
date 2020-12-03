@@ -3,11 +3,12 @@ package mysql
 import (
 	"database/sql"
 	"fmt"
+	"io/ioutil"
+	"os"
+
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v2"
-	"io/ioutil"
-	"os"
 )
 
 type DBConfig struct {
