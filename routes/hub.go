@@ -113,7 +113,7 @@ func registerHandler(ctx iris.Context) {
 				logrus.Debug(username, "  set Token:", token)
 				var res models.ProtocolRsp
 
-				res.Data = &models.RegisterRsp{Id: userID, Uuid: userUUID, UserName: username, Email: email, PassWord: password, Token: token, Expired: exp}
+				res.Data = &models.RegisterRsp{ID: userID, UUID: userUUID, UserName: username, Email: email, PassWord: password, Token: token, Expired: exp}
 				res.ResponseWriter(ctx, http.StatusOK)
 			} else {
 				var res models.ErrorRsp

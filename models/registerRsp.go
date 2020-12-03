@@ -1,8 +1,9 @@
 package models
 
+//RegisterRsp 注册结果
 type RegisterRsp struct {
-	Id       int    `json:"id"`
-	Uuid     string `json:"uuid"`
+	ID       int    `json:"id"`
+	UUID     string `json:"uuid"`
 	UserName string `json:"username"`
 	Email    string `json:"email"`
 	PassWord string `json:"password"`
