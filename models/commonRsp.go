@@ -52,7 +52,7 @@ const (
 
 	ParamErr           = "Request Param Error"
 	GenOrderErr        = "Generate Order Error"
-	PackageIdErr       = "Found Package Id Error"
+	PackageIDErr       = "Found Package Id Error"
 	PackagePlatformErr = "Platform Package Error"
 	TokenErr           = "Token Error"
 	TokenExpiredErr    = "Token Expired"

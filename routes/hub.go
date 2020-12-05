@@ -265,7 +265,7 @@ func genOrder(ctx iris.Context) {
 	if err != nil {
 		var res models.ErrorRsp
 		res.Code = models.ParamErrCode
-		res.Message = models.PackageIdErr
+		res.Message = models.PackageIDErr
 		res.ResponseWriter(ctx, http.StatusBadRequest)
 		return
 	}
