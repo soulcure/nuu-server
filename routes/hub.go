@@ -164,7 +164,14 @@ func loginHandler(ctx iris.Context) {
 				logrus.Debug(username, "  set Token:", token)
 				var res models.ProtocolRsp
 				res.Data = &models.LoginRsp{Token: token, Expired: exp, ID: account.Id, UUID: account.Uuid, UserName: account.UserName, Email: account.Email}
-				res.ResponseWriter(ctx, http.StatusOK)
+
+				key := fmt.Sprintf("%s%s", "account:", strconv.Itoa(account.Id))
+
+				_, err = redis.SetStruct(key, res.Data)
+				if err == nil {
+					res.ResponseWriter(ctx, http.StatusOK)
+				}
+
 			} else {
 				var res models.ErrorRsp
 				res.Code = models.LoginErrCode
